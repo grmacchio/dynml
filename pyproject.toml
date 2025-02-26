@@ -16,5 +16,6 @@ dependencies = [
 ]
 
 # package information
-[tool.setuptools]
-packages = ["dynml"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dynml*"]
