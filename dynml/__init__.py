@@ -1,7 +1,7 @@
-"""Contain all dynamics code, all machine learning code, and some examples.
+"""Contain all dynamics code, some examples, and all machine learning code.
 
-This package contains all dynamics code, all machine learning code, and some
-examples.
+This package contains all dynamics code, some examples, and all machine
+learning code.
 """
 
 
