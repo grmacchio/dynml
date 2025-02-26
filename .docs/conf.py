@@ -49,4 +49,4 @@ html_theme_options = {'navigation_depth': 10}
 
 
 # mocking the import of torch because it is not installed on readthedocs
-autodoc_mock_imports = ["torch", "tqdm"]
+autodoc_mock_imports = ["scipy", "torch", "tqdm"]
