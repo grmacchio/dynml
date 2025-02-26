@@ -1,0 +1,20 @@
+# PEP 517/518 compliance
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# project information
+[project]
+name = "dynml"
+version = "0.0"
+authors = [
+    { name = "Gregory R. Macchio", email = "gm0796@princeton.edu" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy", "scipy", "torch", "tqdm"
+]
+
+# package information
+[tool.setuptools]
+packages = ["dynml"]
