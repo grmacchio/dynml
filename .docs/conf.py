@@ -42,7 +42,11 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
-#Options for HTML output
+# options for html output
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {'navigation_depth': 10}
+
+
+# mocking the import of torch because it is not installed on readthedocs
+autodoc_mock_imports = ["torch"]
