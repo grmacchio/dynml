@@ -36,7 +36,7 @@ class KSE(SemiLinearFirstOrderSystem):
         \\end{align*}
 
     where periodic boundary conditions are satisfied,
-    :math:`x \\in [0, L] / \\sim`, and :math:`t \\in \\mathbb{R}`.
+    :math:`x \\in [0, L]`, and :math:`t \\in \\mathbb{R}`.
     In order to obtain a first-order O.D.E. system, we orthogonally
     project this P.D.E. onto the space of Fourier modes where solutions
     :math:`u` take the form,
@@ -44,7 +44,7 @@ class KSE(SemiLinearFirstOrderSystem):
     .. math::
         \\begin{align*}
             u = \\sum_{k=-K}^{K} e^{\\frac{2\\pi i k}{L} \\:\\cdot_x} \\:
-            U_k(\\:\\cdot_{t})
+            U_k(\\:\\cdot_{t}).
         \\end{align*}
 
     By substituting this expression into the P.D.E. and projecting using the
@@ -100,8 +100,10 @@ class KSE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``K`` (``int``): the number of Fourier modes :math:`K`
-    |   ``L`` (``float``): the length of the domain :math:`L`
+    |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
+            value ``32``
+    |   ``L`` (``float``): the length of the domain :math:`L` with a default
+            value ``22.0``
     |   ``N`` (``int``): the number of collocation points :math:`2K + 1`
     |   ``num_states`` (``int``): the number of states
     |   ``A`` (``Tensor``): the matrix :math:`A`
@@ -132,7 +134,7 @@ class KSE(SemiLinearFirstOrderSystem):
     def num_states(self):
         return 2 * (self.K + 1) - 1
 
-    def __init__(self, K: int = 32, L: float = 10.0):
+    def __init__(self, K: int = 32, L: float = 22.0):
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
@@ -275,7 +277,7 @@ class KSE(SemiLinearFirstOrderSystem):
 
     def _dealiased_irfft(self, U: Tensor) -> Tensor:
         U_pad = zeros(U.shape[:-1] + (self._K_prime + 1,),
-                      dtype=complex128,
+                      dtype=U.dtype,
                       device=next(self.parameters()).device.type).squeeze(0)
         U_pad[..., :self.K + 1] = U[..., :self.K + 1]
         return irfft(U_pad, n=self._N_prime, norm='forward')
