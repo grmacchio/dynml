@@ -7,7 +7,7 @@ floating-point arithmetic.
 
 
 # import built-in python-package code
-from tqdm import trange  # type: ignore  # no stubs
+from tqdm import tqdm  # type: ignore  # no stubs
 from typing import Callable
 # import external python-package code
 from torch import Tensor, zeros
@@ -84,20 +84,23 @@ def gen_num_trajs(discrete_sys: DiscreteSystem,  # noqa: C901
     # send the discrete system to the compute device
     discrete_sys = discrete_sys.to(compute)
     # determine the batch size of trajectories
+    pbar_steps = tqdm(total=num_samples - 1, disable=not pbar)
     if compute == 'cpu':
         current = discrete_sys.map(current)
+        pbar_steps.update(1)
         traj[:, 1, :] = current.to(output)
         batch_size = num_samples - 1
     elif 'cuda' in compute:
         mem_baseline = max_memory_allocated()
         current = discrete_sys.map(current)
+        pbar_steps.update(1)
         traj[:, 1, :] = current.to(output)
         mem_spike = max_memory_allocated() - mem_baseline
         avail_mem, _ = mem_get_info()
         mem_per_sample = num_traj * 1 * num_states * traj.element_size()
         batch_size = int((0.9 * avail_mem - mem_spike) / mem_per_sample)
     # map the initial conditions
-    for sample_idx in trange(1, num_samples, batch_size, disable=not pbar):
+    for sample_idx in range(1, num_samples, batch_size):
         subbatch_size = min(batch_size, num_samples - sample_idx)
         if sample_idx != 1:
             del batch
@@ -107,9 +110,11 @@ def gen_num_trajs(discrete_sys: DiscreteSystem,  # noqa: C901
             batch[:, 0, :] = current
         else:
             current = discrete_sys.map(current)
+            pbar_steps.update(1)
             batch[:, 0, :] = current
         for i in range(subbatch_size - 1):
             current = discrete_sys.map(current)
+            pbar_steps.update(1)
             batch[:, i + 1, :] = current
         traj[:, sample_idx:sample_idx + subbatch_size] = batch.to(output)
     # send the discrete system back to its original device
