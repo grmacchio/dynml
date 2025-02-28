@@ -7,8 +7,7 @@ This module contains all code related to the Kuramoto-Sivashinsky equation.
 # import built-in python-package code
 # None
 # import external python-package code
-from torch import arange, cat, complex128, diag, pi, rand, randn, Tensor, zeros
-from torch import zeros_like
+from torch import arange, cat, diag, pi, rand, randn, Tensor, zeros, zeros_like
 from torch.fft import irfft, rfft
 from torch.linalg import norm
 from torch.nn import Parameter
