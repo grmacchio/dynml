@@ -139,8 +139,10 @@ class KSE(SemiLinearFirstOrderSystem):
         This method initializes the superclass and model parameters.
 
         | **Args**
-        |   ``K`` (``int``): the number of Fourier modes :math:`K`
-        |   ``L`` (``float``): the length of the domain :math:`L`
+        |   ``K`` (``int``): the number of Fourier modes :math:`K` with a
+                default value of ``32``
+        |   ``L`` (``float``): the length of the domain :math:`L` with a
+                default value of ``22.0``
 
         | **Returns**
         |   None
