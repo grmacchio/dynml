@@ -12,6 +12,8 @@ examples
 
     test_burgers
     test_cgle
+    test_fiber
+    test_heat
     test_kse
     test_poisson
     test_transport
