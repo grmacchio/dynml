@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.abspath('..'))
 # project information
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = 'dynml'
-author = 'Gregory R. Macchio'
-copyright = '2025, Gregory R. Macchio'
+author = 'Gregory R. Macchio, Clarence W. Rowley'
+copyright = '2025, Gregory R. Macchio, Clarence W. Rowley'
 
 
 # add autodoc and rtd theme extensions
