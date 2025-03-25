@@ -11,7 +11,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Type, Union
 # import external python-package code
 from torch import diag, eye, Tensor
-from torch.linalg import inv, lu_factor, lu_solve
+from torch.linalg import inv, lu_factor, lu_solve, norm
 from torch.nn import Module, ModuleList, Parameter
 # import internal python-package code
 from dynml.dyn.cont.ode.firstorder.system import FirstOrderSystem
@@ -188,6 +188,13 @@ class ExplicitTimeStepMethod(ABC, Module):
         super().__init__()
         self.dt = dt
         self.sys = sys
+        # set computationally efficient right hand side
+        if isinstance(sys, SemiLinearFirstOrderSystem):
+            if norm(self.sys.A - diag(diag(self.sys.A)), ord='fro') == 0.0:
+                self._diag_A = diag(sys.A)
+                self._rhs = lambda x: x * self._diag_A + self.sys.nonlinear(x)
+        else:
+            self._rhs = sys.rhs
 
 
 class Euler(ExplicitTimeStepMethod):
@@ -249,7 +256,7 @@ class Euler(ExplicitTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 143.
         """
         # use Euler's method to approx. advance the state by one time-step
-        return x + self.dt * self.sys.rhs(x)
+        return x + self.dt * self._rhs(x)
 
     def __init__(self, dt: float, sys: FirstOrderSystem) -> None:
         """Initialize the superclass.
@@ -332,8 +339,8 @@ class RK2(ExplicitTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 143.
         """
         # use R.K.2. method to approx. advance the state by one time-step
-        k1 = self.dt * self.sys.rhs(x)
-        k2 = self.dt * self.sys.rhs(x + k1)
+        k1 = self.dt * self._rhs(x)
+        k2 = self.dt * self._rhs(x + k1)
         return x + (k1 + k2) / 2.0
 
     def __init__(self, dt: float, sys: FirstOrderSystem) -> None:
@@ -417,10 +424,10 @@ class RK4(ExplicitTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 144.
         """
         # use R.K.4. method to approx. advance the state by one time-step
-        k1 = self.dt * self.sys.rhs(x)
-        k2 = self.dt * self.sys.rhs(x + k1 / 2.0)
-        k3 = self.dt * self.sys.rhs(x + k2 / 2.0)
-        k4 = self.dt * self.sys.rhs(x + k3)
+        k1 = self.dt * self._rhs(x)
+        k2 = self.dt * self._rhs(x + k1 / 2.0)
+        k3 = self.dt * self._rhs(x + k2 / 2.0)
+        k4 = self.dt * self._rhs(x + k3)
         return x + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
 
     def __init__(self, dt: float, sys: FirstOrderSystem) -> None:
@@ -1054,6 +1061,11 @@ class SemiLinearTimeStepMethod(ABC, Module):
         self.dt = dt
         self.sys = sys
         self.init_implicit_solvers(LinearSolver.lookup(implicit_solver))
+        if norm(self.sys.A - diag(diag(self.sys.A)), ord='fro') == 0.0:
+            self._diag_A = diag(sys.A)
+            self._linear = lambda x: x * self._diag_A
+        else:
+            self._linear = lambda x: x @ self.sys.A.T
 
 
 class RK2CN(SemiLinearTimeStepMethod):
@@ -1147,7 +1159,7 @@ class RK2CN(SemiLinearTimeStepMethod):
         """
         # use the R.K.2.C.N. method to approx. advance the state by one
         # time-step
-        rhs_linear = x + 0.5 * self.dt * (x @ self.sys.A.T)
+        rhs_linear = x + 0.5 * self.dt * self._linear(x)
         Nx = self.sys.nonlinear(x)
         rhs1 = rhs_linear + self.dt * Nx
         x1 = self.implicit_solver_insts[0](rhs1)
@@ -1273,13 +1285,13 @@ class RK3CN(SemiLinearTimeStepMethod):
         B = [1.0 / 3, 15.0 / 16, 8.0 / 15]
         Bp = [1.0 / 6, 5.0 / 24, 1.0 / 8]
         Q1 = self.dt * self.sys.nonlinear(x)
-        rhs1 = x + B[0] * Q1 + Bp[0] * self.dt * (x @ self.sys.A.T)
+        rhs1 = x + B[0] * Q1 + Bp[0] * self.dt * self._linear(x)
         x1 = self.implicit_solver_insts[0](rhs1)
         Q2 = A[1] * Q1 + self.dt * self.sys.nonlinear(x1)
-        rhs2 = x1 + B[1] * Q2 + Bp[1] * self.dt * (x1 @ self.sys.A.T)
+        rhs2 = x1 + B[1] * Q2 + Bp[1] * self.dt * self._linear(x1)
         x2 = self.implicit_solver_insts[1](rhs2)
         Q3 = A[2] * Q2 + self.dt * self.sys.nonlinear(x2)
-        rhs3 = x2 + B[2] * Q3 + Bp[2] * self.dt * (x2 @ self.sys.A.T)
+        rhs3 = x2 + B[2] * Q3 + Bp[2] * self.dt * self._linear(x2)
         x3 = self.implicit_solver_insts[2](rhs3)
         return x3
 
