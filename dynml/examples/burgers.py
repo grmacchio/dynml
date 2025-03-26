@@ -21,10 +21,10 @@ __all__ = ['Burgers']
 
 # define the dynamical system
 class Burgers(SemiLinearFirstOrderSystem):
-    """Represent the discretized Burgers' dynamical system.
+    """Represent the discretized Burgers' dynamical system with periodic
+    boundary conditions.
 
-    This class represents the discretized Burgers' dynamical system. In
-    particular, we examine the discretized Burgers' dynamical system with
+    This class represents the discretized Burgers' dynamical system with
     periodic boundary conditions on :math:`[0, L]`. Burgers' equation
     is written as
 
@@ -66,15 +66,25 @@ class Burgers(SemiLinearFirstOrderSystem):
         \\begin{align*}
             \\mathcal{F}_{k}\\left(\\partial u / \\partial x \\: u\\right)
             \\approx
-            \\mathcal{D}_{k}\\left(
-            \\left\\{\\mathcal{D}_{n}^{-1}\\left(\\left\\{
-            \\frac{2\\pi i m}{L} U_m(\\:\\cdot_{t})
-            \\right\\}_{m}\\right)
-            \\cdot \\mathcal{D}_{n}^{-1}\\left(\\left\\{
-            U_{m}(\\:\\cdot_{t}) \\right\\}_{m}
-            \\right)
-            \\right\\}_{n}\\right),
-        \\end{align*},
+            \\mathcal{D}_{k}
+            \\left[
+            \\left(
+            \\mathcal{D}_{n}^{-1}
+            \\left[
+            \\left(
+            \\frac{2\\pi i m}{L}
+            U_m
+            \\right)_{m\\:}
+            \\right]
+            \\cdot
+            \\mathcal{D}_{n}^{-1}
+            \\left[
+            \\left(
+            U_{m}
+            \\right)_{m\\:}
+            \\right]
+            \\right)_{n\\:}\\right],
+        \\end{align*}
 
     where :math:`m \\in [-K : K]` is the frequency index and
     :math:`n \\in [0 : 2K]` is the collocation point index [1]. When using the
@@ -83,8 +93,8 @@ class Burgers(SemiLinearFirstOrderSystem):
     real-valued system of ordinary differential equations by removing any
     extraneous states in :math:`\\{U_{k}(\\:\\cdot_{t})\\}_{k}` using the
     Hermitian symmetry condition of real-valued signals and by reshaping the
-    left over complex-valued states :math:`\\vec{x} = \\{U_{k}(\\:\\cdot_{t})
-    \\}_{k \\in [0 : K]}`. The final system takes the
+    left over complex-valued states :math:`\\vec{x} = (U_{k}(\\:\\cdot_{t})
+    )_{k \\in [0 : K]}`. The final system takes the
     form,
 
     .. math::
@@ -96,8 +106,8 @@ class Burgers(SemiLinearFirstOrderSystem):
     removing the one redundant state, resulting in
     :math:`\\vec{x}_{\\mathbb{R}}` real-valued state. This, was not implemented
     as the memory savings are minimal and reshaping into real tensors would
-    require larger computational overhead per
-    function call.
+    require more overhead than its worth considering states in the frequency
+    domain, or physical domain, are readily used in computation.
 
     | **Abstract Attributes**
     |   None
@@ -212,8 +222,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         This method returns the physical state given the state.
 
         | **Args**
-        |   ``\\vec{x}`` (``Tensor``): the state with shape
-                ``(...,) + (self.K + 1,)``
+        |   ``x`` (``Tensor``): the state with shape ``(...,) + (self.K + 1,)``
 
         | **Returns**
         |   ``Tensor``: the physical state with shape
