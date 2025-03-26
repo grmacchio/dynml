@@ -154,7 +154,7 @@ class Fiber(SemiLinearFirstOrderSystem):
         # compute the nonlinear term
         output = zeros_like(x)
         output[:, 0] = self.C * x[:, 0] * x[:, 1]
-        return output   
+        return output
 
     def __init__(self, lambda1: float = 1.0, lambda2: float = 10.0,
                  C: float = 30.0) -> None:
@@ -166,13 +166,13 @@ class Fiber(SemiLinearFirstOrderSystem):
         |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1`
         |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2`
         |   ``C`` (``float``): the parameter :math:`C`
-        
+
         | **Return**
         |   None
 
         | **Raises**
         |   None
-        
+
         | **References**
         |   None
         """
@@ -184,7 +184,7 @@ class Fiber(SemiLinearFirstOrderSystem):
         self.C = C
         self._A = Parameter(tensor([[-lambda1, 0.0], [0.0, -lambda2]]))
         self._num_states = 2
-    
+
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 3)]`.
 
@@ -215,18 +215,18 @@ class Fiber(SemiLinearFirstOrderSystem):
 
     def h(self, z: Tensor) -> Tensor:
         """Return the transformation :math:`h(z)`.
-        
+
         This method returns the transformation :math:`h(z)`.
-        
+
         | **Args**
         |   ``z`` (``Tensor``): the state with shape ``(...,) +(2,)``
-        
+
         | **Returns**
         |   ``Tensor``: the transformation with shape ``(...,) +(2,)``
-        
+
         | **Raises**
         |   None
-        
+
         | **References**
         |   None
         """
