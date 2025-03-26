@@ -7,7 +7,7 @@ This module contains all code related to the Burgers' dynamical system.
 # import built-in python-package code
 from math import pi as math_pi
 # import external python-package code
-from torch import arange, complex, diag, pi, rand, randn, Tensor, zeros
+from torch import arange, diag, pi, rand, randn, Tensor, zeros
 from torch.fft import irfft, rfft
 from torch.linalg import norm
 from torch.nn import Parameter
@@ -291,7 +291,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         comp = zeros((self.K + 1,), device=next(self.parameters()).device.type)
         real = point[:self.K + 1]
         comp[1:] = point[self.K + 1:]
-        return complex(real, comp)
+        return real + 1j * comp
 
     def _dealiased_irfft(self, U: Tensor) -> Tensor:
         U_pad = zeros(U.shape[:-1] + (self._K_prime + 1,),
