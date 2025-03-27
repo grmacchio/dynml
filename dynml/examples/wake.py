@@ -141,10 +141,14 @@ class Wake(SemiLinearFirstOrderSystem):
         This method initializes the superclass and model parameters.
 
         | **Args**
-        |   ``mu`` (``float``): the value of the parameter :math:`\\mu`
+        |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with
+                default value of ``0.1``
         |   ``omega`` (``float``): the value of the parameter :math:`\\omega`
+                with default value of ``1.0``
         |   ``alpha`` (``float``): the value of the parameter :math:`\\alpha`
+                with default value of ``-0.1``
         |   ``lam`` (``float``): the value of the parameter :math:`\\lambda`
+                with default value of ``10.0``
 
         | **Returns**
         |   None
@@ -246,5 +250,5 @@ class Wake(SemiLinearFirstOrderSystem):
         gaussian = randn((self.num_states,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
-        radius = 2.0 * rand((1,), device=next(self.parameters()).device.type)
+        radius = 1.0 * rand((1,), device=next(self.parameters()).device.type)
         return radius * direction
