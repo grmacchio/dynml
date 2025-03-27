@@ -193,6 +193,8 @@ class ExplicitTimeStepMethod(ABC, Module):
             if norm(self.sys.A - diag(diag(self.sys.A)), ord='fro') == 0.0:
                 self._diag_A = diag(sys.A)
                 self._rhs = lambda x: x * self._diag_A + self.sys.nonlinear(x)
+            else:
+                self._rhs = sys.rhs
         else:
             self._rhs = sys.rhs
 
