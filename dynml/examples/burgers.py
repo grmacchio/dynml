@@ -37,7 +37,7 @@ class Burgers(SemiLinearFirstOrderSystem):
     \\mathbb{R}` is the time, :math:`x \\in [0, L]` is the spatial
     coordinate, and :math:`\\nu > 0` is the viscosity. In order to obtain a
     first-order O.D.E. system, we orthogonally project this P.D.E. onto the
-    space of Fourier modes where solutions :math:`u` take the form,
+    space of complex Fourier modes where solutions :math:`u` take the form,
 
     .. math::
         \\begin{align*}
@@ -89,11 +89,11 @@ class Burgers(SemiLinearFirstOrderSystem):
     where :math:`m \\in [-K : K]` is the frequency index and
     :math:`n \\in [0 : 2K]` is the collocation point index [1]. When using the
     discrete fourier transform we account for aliasing by
-    using the :math:`3/2` rule [1]. Finally, we represent this system as a
-    real-valued system of ordinary differential equations by removing any
-    extraneous states in :math:`\\{U_{k}(\\:\\cdot_{t})\\}_{k}` using the
-    Hermitian symmetry condition of real-valued signals and by reshaping the
-    left over complex-valued states :math:`\\vec{x} = (U_{k}(\\:\\cdot_{t})
+    using the :math:`3/2` rule [1]. Finally, we represent this system as
+    smaller system of ordinary differential equations by removing any
+    extraneous states in :math:`(U_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
+    the Hermitian symmetry condition of real-valued signals. The left over
+    complex-valued states are :math:`\\vec{x} = (U_{k}(\\:\\cdot_{t})
     )_{k \\in [0 : K]}`. The final system takes the
     form,
 
@@ -264,7 +264,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         This method returns an I.C. where
         :math:`\\|\\vec{x}_{\\mathbb{R}}\\|_2 \\sim U[[0, 1)]`. In particular,
         an initial condition is sampled in the following way: First,
-        :math:`\\vec{u} \\sim U[\\mathcal{S}^{\\text{num_states}-2}]`. Second,
+        :math:`\\vec{u} \\sim U[\\mathcal{S}^{2n-2}]`. Second,
         :math:`r\\sim U[[0, 1)]`. Finally, the sample
         :math:`\\vec{x}_{\\mathbb{R}} = ru` is returned shaped into the state
         :math:`\\vec{x}`.
