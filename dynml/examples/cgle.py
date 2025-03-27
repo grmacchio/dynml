@@ -292,12 +292,12 @@ class CGLE(SemiLinearFirstOrderSystem):
         """
         return fft(u, n=self.N, norm='forward')
 
-    def _dealiased_ifft(self, U: Tensor) -> Tensor:
-        U_pad = zeros(U.shape[:-1] + (self._N_prime,), dtype=U.dtype,
+    def _dealiased_ifft(self, x: Tensor) -> Tensor:
+        x_pad = zeros(x.shape[:-1] + (self._N_prime,), dtype=x.dtype,
                       device=next(self.parameters()).device.type).squeeze(0)
-        U_pad[..., :self.K + 1] = U[..., :self.K + 1]
-        U_pad[..., -self.K:] = U[..., -self.K:]
-        return ifft(U_pad, n=self._N_prime, norm='forward')
+        x_pad[..., :self.K + 1] = x[..., :self.K + 1]
+        x_pad[..., -self.K:] = x[..., -self.K:]
+        return ifft(x_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_fft(self, u: Tensor) -> Tensor:
         U_pad = fft(u, n=self._N_prime, norm='forward')

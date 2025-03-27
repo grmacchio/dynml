@@ -293,12 +293,12 @@ class Burgers(SemiLinearFirstOrderSystem):
         comp[1:] = point[self.K + 1:]
         return real + 1j * comp
 
-    def _dealiased_irfft(self, U: Tensor) -> Tensor:
-        U_pad = zeros(U.shape[:-1] + (self._K_prime + 1,),
-                      dtype=U.dtype,
+    def _dealiased_irfft(self, x: Tensor) -> Tensor:
+        x_pad = zeros(x.shape[:-1] + (self._K_prime + 1,),
+                      dtype=x.dtype,
                       device=next(self.parameters()).device.type).squeeze(0)
-        U_pad[..., :self.K + 1] = U[..., :self.K + 1]
-        return irfft(U_pad, n=self._N_prime, norm='forward')
+        x_pad[..., :self.K + 1] = x[..., :self.K + 1]
+        return irfft(x_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, u: Tensor) -> Tensor:
         return rfft(u, n=self._N_prime, norm='forward')[..., :self.K + 1]
