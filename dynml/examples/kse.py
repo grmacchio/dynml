@@ -151,7 +151,7 @@ class KSE(SemiLinearFirstOrderSystem):
 
     @property
     def num_states(self):
-        return 2 * (self.K + 1) - 1
+        return self.K + 1
 
     def __init__(self, K: int = 32, L: float = 11.0):
         """Initialize the superclass and model parameters.
