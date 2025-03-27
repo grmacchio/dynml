@@ -1,6 +1,7 @@
-"""Contain all code related to the three-state cylinder wake model.
+"""Contain all code related to the three-state cylinder wake dynamical system.
 
-This module contains all code related to the three-state cylinder wake model.
+This module contains all code related to the three-state cylinder wake
+dynamical system.
 """
 
 
@@ -61,12 +62,16 @@ class Wake(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``mu`` (``float``): the value of the parameter :math:`\\mu`
-    |   ``omega`` (``float``): the value of the parameter :math:`\\omega`
-    |   ``alpha`` (``float``): the value of the parameter :math:`\\alpha`
-    |   ``lam`` (``float``): the value of the parameter :math:`\\lambda`
-    |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``num_states`` (``int``): the number of states
+    |   ``A`` (``Tensor``): the matrix :math:`A`
+    |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with
+            default value of ``0.1``
+    |   ``omega`` (``float``): the value of the parameter :math:`\\omega` with
+            default value of ``1.0``
+    |   ``alpha`` (``float``): the value of the parameter :math:`\\alpha` with
+            default value of ``-0.1``
+    |   ``lam`` (``float``): the value of the parameter :math:`\\lambda` with
+            default value of ``10.0``
 
     | **Abstract Methods**
     |   None
@@ -80,7 +85,7 @@ class Wake(SemiLinearFirstOrderSystem):
     |   ``taylor_approx_slow_manifold()``: return the 4th-ord. approx. slow
             manifold :math:`x_3` coordinate
     |   ``gen_ic()``: return an initial condition where
-            :math:`\\|x\\|_2 \\sim U[[0, 2)]`
+            :math:`\\|x\\|_2 \\sim U[[0, 1)]`
     |   ``rhs()``: return :math:`f(x)`
 
     | **References**
@@ -220,9 +225,9 @@ class Wake(SemiLinearFirstOrderSystem):
         """Return an initial condition where :math:`\\|x\\|_2 \\sim U[[0, 2)]`.
 
         This method returns an initial condition where :math:`\\|x\\|_2 \\sim
-        U[[0, 2)]`. In particular, an initial condition is sampled in the
+        U[[0, 1)]`. In particular, an initial condition is sampled in the
         following way: First, :math:`u \\sim U[\\mathcal{S}^{2}]`. Second,
-        :math:`r\\sim U[[0, 2)]`. Finally, the sample :math:`ru` is returned.
+        :math:`r\\sim U[[0, 1)]`. Finally, the sample :math:`ru` is returned.
 
         | **Args**
         |   None
@@ -237,7 +242,7 @@ class Wake(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        # return the initial condition where ||x||_2 ~ U[[0, 2)]
+        # return the initial condition where ||x||_2 ~ U[[0, 1)]
         gaussian = randn((self.num_states,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
