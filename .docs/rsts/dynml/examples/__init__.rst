@@ -13,8 +13,5 @@ examples
     burgers
     cgle
     fiber
-    heat
     kse
-    poisson
-    transport
     wake

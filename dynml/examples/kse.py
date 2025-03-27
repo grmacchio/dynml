@@ -284,4 +284,4 @@ class KSE(SemiLinearFirstOrderSystem):
         return irfft(U_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, u: Tensor) -> Tensor:
-        return rfft(u, norm='forward')[..., :self.K + 1]
+        return rfft(u, n=self._N_prime, norm='forward')[..., :self.K + 1]
