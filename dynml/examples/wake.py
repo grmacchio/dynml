@@ -250,5 +250,5 @@ class Wake(SemiLinearFirstOrderSystem):
         gaussian = randn((self.num_states,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
-        radius = 1.0 * rand((1,), device=next(self.parameters()).device.type)
+        radius = rand((1,), device=next(self.parameters()).device.type)
         return radius * direction
