@@ -119,7 +119,7 @@ class Fiber(SemiLinearFirstOrderSystem):
     |   ``nonlinear()``: return :math:`F(x)`
     |   ``__init__()``: initialize the superclass and model parameters
     |   ``rhs()``: return :math:`f(x)`
-    |   ``gen_ic()``: return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 3)]`
+    |   ``gen_ic()``: return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 1)]`
     |   ``h()``: return the transformation :math:`h(z)`
 
     | **References**
@@ -187,12 +187,12 @@ class Fiber(SemiLinearFirstOrderSystem):
         self._num_states = 2
 
     def gen_ic(self) -> Tensor:
-        """Return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 3)]`.
+        """Return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 1)]`.
 
         This method returns an I.C. where :math:`\\|x\\|_2 \\sim
-        U[[0, 3)]`. In particular, an initial condition is sampled in the
+        U[[0, 1)]`. In particular, an initial condition is sampled in the
         following way: First, :math:`u \\sim U[\\mathcal{S}^{n-1}]`.
-        Second, :math:`r\\sim U[[0, 3)]`. Finally, the sample :math:`ru` is
+        Second, :math:`r\\sim U[[0, 1)]`. Finally, the sample :math:`ru` is
         returned.
 
         | **Args**
@@ -207,11 +207,11 @@ class Fiber(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        # return the initial condition where ||x||_2 ~ U[[0, 3)]
+        # return the initial condition where ||x||_2 ~ U[[0, 1)]
         gaussian = randn((self.num_states,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
-        radius = 3.0 * rand((1,), device=next(self.parameters()).device.type)
+        radius = rand((1,), device=next(self.parameters()).device.type)
         return radius * direction
 
     def h(self, z: Tensor) -> Tensor:
