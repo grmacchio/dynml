@@ -103,9 +103,12 @@ class Fiber(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1`
-    |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2`
-    |   ``C`` (``float``): the parameter :math:`C`
+    |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with default
+    |       value :math:`1.0`
+    |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
+    |       value :math:`10.0`
+    |   ``C`` (``float``): the parameter :math:`C` with default value
+    |       :math:`30.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``num_states`` (``int``): the number of states
 
@@ -163,9 +166,12 @@ class Fiber(SemiLinearFirstOrderSystem):
         This method initializes the superclass and model parameters.
 
         | **Args**
-        |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1`
-        |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2`
-        |   ``C`` (``float``): the parameter :math:`C`
+        |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with
+        |       default value :math:`1.0`
+        |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with
+                default value :math:`10.0`
+        |   ``C`` (``float``): the parameter :math:`C` with default value
+                :math:`30.0`
 
         | **Return**
         |   None
