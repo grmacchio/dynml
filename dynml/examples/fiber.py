@@ -182,7 +182,8 @@ class Fiber(SemiLinearFirstOrderSystem):
         self.lambda1 = lambda1
         self.lambda2 = lambda2
         self.C = C
-        self._A = Parameter(tensor([[-lambda1, 0.0], [0.0, -lambda2]]))
+        self._A = Parameter(tensor([[-lambda1, 0.0], [0.0, -lambda2]]),
+                            requires_grad=False)
         self._num_states = 2
 
     def gen_ic(self) -> Tensor:
