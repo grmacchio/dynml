@@ -242,3 +242,26 @@ class Fiber(SemiLinearFirstOrderSystem):
         output[..., 0] = z[..., 0] * exp(-self.C * z[..., 1] / self.lambda2)
         output[..., 1] = z[..., 1]
         return output
+
+    def h_inv(self, x: Tensor) -> Tensor:
+        """Return the inverse transformation :math:`h^{-1}(x)`.
+
+        This method returns the inverse transformation :math:`h^{-1}(x)`.
+
+        | **Args**
+        |   ``x`` (``Tensor``): the state with shape ``(...,) +(2,)``
+
+        | **Returns**
+        |   ``Tensor``: the inverse transformation with shape ``(...,) +(2,)``
+
+        | **Raises**
+        |   None
+
+        | **References**
+        |   None
+        """
+        # return the inverse transformation h^{-1}(x)
+        output = zeros_like(x)
+        output[..., 0] = x[..., 0] * exp(self.C * x[..., 1] / self.lambda2)
+        output[..., 1] = x[..., 1]
+        return output
