@@ -156,7 +156,7 @@ class Fiber(SemiLinearFirstOrderSystem):
         """
         # compute the nonlinear term
         output = zeros_like(x)
-        output[:, 0] = self.C * x[:, 0] * x[:, 1]
+        output[..., 0] = self.C * x[..., 0] * x[..., 1]
         return output
 
     def __init__(self, lambda1: float = 1.0, lambda2: float = 10.0,
