@@ -8,7 +8,7 @@ manifold.
 # import built-in python-package code
 # None
 # import external python-package code
-from torch import exp, rand, randn, tensor, Tensor, zeros_like
+from torch import rand, randn, tensor, Tensor, zeros_like
 from torch.nn import Parameter
 from torch.linalg import norm
 # import internal python-package code
