@@ -14,4 +14,5 @@ examples
     test_cgle
     test_kse
     test_line
+    test_parabola
     test_paraboloid
