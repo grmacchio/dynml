@@ -27,6 +27,7 @@ class DiscreteSystemExample(DiscreteSystem):
     |   None
 
     | **Attributes**
+    |   ``field`` (``str``): ``R`` for real numbers
     |   ``num_states`` (``int``): the number four
 
     | **Abstract Methods**
@@ -42,6 +43,10 @@ class DiscreteSystemExample(DiscreteSystem):
     | **References**
     |   None
     """
+
+    @property
+    def field(self) -> str:
+        return 'R'
 
     @property
     def num_states(self) -> int:
@@ -94,8 +99,8 @@ def test_DiscreteSystem() -> None:
     """Test the ``DiscreteSystem`` class.
 
     This method tests the ``DiscreteSystem`` class. In particular, it
-    instantiates ``DiscreteSystemExample`` and tests ``num_states``, and
-    ``map()``.
+    instantiates ``DiscreteSystemExample`` and tests ``field``, ``num_states``,
+    and ``map()``.
 
     | **Args**
     |   None
@@ -116,6 +121,8 @@ def test_DiscreteSystem() -> None:
     # initialize DiscreteSystemExample
     num_states = 4
     test = DiscreteSystemExample(num_states).to(device)
+    # test field
+    assert test.field == 'R'
     # test num_states
     assert test.num_states == num_states
     # test map

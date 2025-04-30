@@ -25,6 +25,7 @@ class FirstOrderSystem(ABC, Module):
     This abstract class represents a first-order O.D.E. system.
 
     | **Abstract Attributes**
+    |   ``field`` (``str``): the field the dynamical system is defined over
     |   ``num_states`` (``int``): the number of states
 
     | **Class Attributes**
@@ -45,6 +46,30 @@ class FirstOrderSystem(ABC, Module):
     | **References**
     |   None
     """
+
+    @property
+    @abstractmethod
+    def field(self) -> str:
+        """Return the field the dynamical system is defined over.
+
+        This method returns the field the dynamical system is defined over. The
+        allowable field are ``R`` and ``C`` for real and complex numbers,
+        respectively.
+
+        | **Args**
+        |   None
+
+        | **Return**
+        |   ``str``: the field the dynamical system is defined over
+
+        | **Raises**
+        |   None
+
+        | **References**
+        |   None
+        """
+        # code pass as a placeholder for future implementation
+        pass
 
     @property
     @abstractmethod
@@ -105,6 +130,7 @@ class SemiLinearFirstOrderSystem(FirstOrderSystem):
 
     | **Abstract Attributes**
     |   ``A`` (``Tensor``): the matrix representation of the linear function
+    |   ``field`` (``str``): the field the dynamical system is defined over
     |   ``num_states`` (``int``): the number of states
 
     | **Class Attributes**

@@ -48,6 +48,7 @@ class Parabola(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
+    |   ``field`` (``str``): ``R`` for real numbers
     |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with default
     |       value :math:`1.0`
     |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
@@ -70,6 +71,10 @@ class Parabola(SemiLinearFirstOrderSystem):
     | **References**
     |   None
     """
+
+    @property
+    def field(self) -> str:
+        return 'R'
 
     @property
     def A(self) -> Tensor:

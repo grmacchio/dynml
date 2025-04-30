@@ -1335,6 +1335,7 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
     |   None
 
     | **Attributes**
+    |   ``field`` (``str``): the field the dynamical system is defined over
     |   ``num_states`` (``int``): the number of states
     |   ``method`` (``Union[ExplicitTimeStepMethod,
             SemiLinearTimeStepMethod]``): the time-stepping method
@@ -1352,6 +1353,10 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
     | **References**
     |   None
     """
+
+    @property
+    def field(self) -> str:
+        return self.method.sys.field
 
     @property
     def num_states(self) -> int:
