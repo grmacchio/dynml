@@ -1,7 +1,7 @@
-fiber.py
-========
+paraboloid.py
+=============
 
-.. automodule:: dynml.examples.fiber
+.. automodule:: dynml.examples.paraboloid
     :members:
     :show-inheritance:
     :special-members: __init__, __call__, __init_subclass__, __getitem__,

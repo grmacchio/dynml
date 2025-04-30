@@ -1,7 +1,7 @@
-wake.py
+line.py
 =======
 
-.. automodule:: dynml.examples.wake
+.. automodule:: dynml.examples.line
     :members:
     :show-inheritance:
     :special-members: __init__, __call__, __init_subclass__, __getitem__,

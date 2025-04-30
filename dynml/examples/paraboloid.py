@@ -1,7 +1,7 @@
-"""Contain all code related to the three-state cylinder wake dynamical system.
+"""Contain all code related to a system with a paraboloid slow manifold.
 
-This module contains all code related to the three-state cylinder wake
-dynamical system.
+This module contains all code related to a system with a paraboloid slow
+manifold.
 """
 
 
@@ -16,15 +16,16 @@ from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
 
 
 # export public code
-__all__ = ['Wake']
+__all__ = ['Paraboloid']
 
 
 # argument parser choice dictionaries
-class Wake(SemiLinearFirstOrderSystem):
-    """Represent a three-state cylinder wake model.
+class Paraboloid(SemiLinearFirstOrderSystem):
+    """Represent a system with a paraboloid slow manifold.
 
-    This class represents the three-state cylinder wake model described in
-    [1, 2]. The model is given by the following system of real-valued ordinary
+    This class represents a system with a paraboloid slow manifold. In
+    particular, this is a three-state cylinder wake model described in [1, 2].
+    The model is given by the following system of real-valued ordinary
     differential equations:
 
     .. math::

@@ -12,6 +12,6 @@ examples
 
     burgers
     cgle
-    fiber
     kse
-    wake
+    line
+    paraboloid

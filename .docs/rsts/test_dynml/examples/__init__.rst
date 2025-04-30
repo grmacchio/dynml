@@ -12,6 +12,6 @@ examples
 
     test_burgers
     test_cgle
-    test_fiber
     test_kse
-    test_wake
+    test_line
+    test_paraboloid

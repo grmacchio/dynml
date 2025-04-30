@@ -1,6 +1,6 @@
-"""Contain all code related to the nonlinear fiber example in two dimensions.
+"""Contain all code related to a system with a linear slow manifold.
 
-This contains the code for the nonlinear fiber example in two dimensions.
+This module contains all code related to a system with a linear slow manifold.
 """
 
 
@@ -15,14 +15,14 @@ from dynml.dyn.cont.ode.firstorder import SemiLinearFirstOrderSystem
 
 
 # export public code
-__all__ = ['Fiber']
+__all__ = ['Line']
 
 
 # define the dynamic system
-class Fiber(SemiLinearFirstOrderSystem):
-    """Represent the nonlinear fiber example in two dimensions.
+class Line(SemiLinearFirstOrderSystem):
+    """Represent a system with a linear slow manifold.
 
-    This class represents the nonlinear fiber example in two dimensions. In
+    This class represents a system with a linear slow manifold. In
     particular, the toy nonlinear system is defined by the following system of
     first-order ordinary differential equations:
 
@@ -106,9 +106,9 @@ class Fiber(SemiLinearFirstOrderSystem):
     |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with default
     |       value :math:`1.0`
     |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
-    |       value :math:`10.0`
+    |       value :math:`100.0`
     |   ``C`` (``float``): the parameter :math:`C` with default value
-    |       :math:`30.0`
+    |       :math:`300.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``num_states`` (``int``): the number of states
 
@@ -124,6 +124,7 @@ class Fiber(SemiLinearFirstOrderSystem):
     |   ``rhs()``: return :math:`f(x)`
     |   ``gen_ic()``: return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 1)]`
     |   ``h()``: return the transformation :math:`h(z)`
+    |   ``h_inv()``: return the inverse transformation :math:`h^{-1}(x)`
 
     | **References**
     |   None
@@ -143,7 +144,7 @@ class Fiber(SemiLinearFirstOrderSystem):
         This method returns :math:`F(x)`.
 
         | **Args**
-        |   ``x`` (``Tensor``): the state with shape ``(...,) +(2)``
+        |   ``x`` (``Tensor``): the state with shape ``(...,) +(2,)``
 
         | **Returns**
         |   ``Tensor``: the nonlinear term with shape ``(...,) +(2,)``
@@ -159,8 +160,8 @@ class Fiber(SemiLinearFirstOrderSystem):
         output[..., 0] = self.C * x[..., 0] * x[..., 1]
         return output
 
-    def __init__(self, lambda1: float = 1.0, lambda2: float = 10.0,
-                 C: float = 30.0) -> None:
+    def __init__(self, lambda1: float = 1.0, lambda2: float = 100.0,
+                 C: float = 300.0) -> None:
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
