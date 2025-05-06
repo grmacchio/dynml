@@ -188,7 +188,8 @@ class KSE(SemiLinearFirstOrderSystem):
         self._N_prime = 2 * self._K_prime + 1
         k = arange(self.K + 1)
         ksq = (2 * pi / L) ** 2 * k**2
-        self._A = Parameter(diag(ksq * (1 - ksq)), requires_grad=False)
+        self._A = Parameter(diag(ksq * (1 - ksq)) + 1j * 0.0,
+                            requires_grad=False)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
 
     @property
