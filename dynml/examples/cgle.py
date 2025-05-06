@@ -302,8 +302,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         device = next(self.parameters()).device.type
         dtype = x.dtype
         x_pad = cat((zeros(shape, dtype=dtype, device=device),
-                     x[..., -self.K:self.K + 1]),
-                     zeros(shape, dtype=dtype, device=device),
+                     x[..., -self.K:self.K + 1],
+                     zeros(shape, dtype=dtype, device=device)),
                      dim=-1)
         return ifft(x_pad, n=self._N_prime, norm='forward')
 
