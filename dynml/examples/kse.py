@@ -8,7 +8,7 @@ system.
 # import built-in python-package code
 # None
 # import external python-package code
-from torch import arange, diag, pi, rand, randn, Tensor, zeros
+from torch import arange, cat, diag, pi, rand, randn, Tensor, zeros
 from torch.fft import irfft, rfft
 from torch.linalg import norm
 from torch.nn import Parameter
@@ -299,10 +299,11 @@ class KSE(SemiLinearFirstOrderSystem):
         return real + 1j * comp
 
     def _dealiased_irfft(self, U: Tensor) -> Tensor:
-        U_pad = zeros(U.shape[:-1] + (self._K_prime + 1,),
-                      dtype=U.dtype,
-                      device=next(self.parameters()).device.type).squeeze(0)
-        U_pad[..., :self.K + 1] = U[..., :self.K + 1]
+        U_pad = cat((U[..., :self.K + 1],
+                     zeros(U.shape[:-1] + (self._K_prime - self.K,),
+                           dtype=U.dtype,
+                           device=next(self.parameters()).device.type)),
+                           dim=-1)
         return irfft(U_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, u: Tensor) -> Tensor:
