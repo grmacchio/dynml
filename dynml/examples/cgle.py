@@ -298,7 +298,7 @@ class CGLE(SemiLinearFirstOrderSystem):
         return fft(u, n=self.N, norm='forward')
 
     def _dealiased_ifft(self, x: Tensor) -> Tensor:
-        shape = x.shape[:-1] + (2 * (self._K_prime - self.K,))
+        shape = x.shape[:-1] + (self._N_prime - (self.K + 1) - self.K,)
         device = next(self.parameters()).device.type
         dtype = x.dtype
         x_pad = cat((x[..., :self.K + 1],
