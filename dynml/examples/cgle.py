@@ -108,7 +108,7 @@ class CGLE(SemiLinearFirstOrderSystem):
             value of ``256``
     |   ``N`` (``int``): the number of collocation points :math:`N = 2K + 1`
     |   ``L`` (``float``): the value of the parameter :math:`L` with default
-            value of ``100.0``
+            value of ``10.0``
     |   ``R`` (``float``): the value of the parameter :math:`R` with default
             value of ``1.0``
     |   ``nu`` (``float``): the value of the parameter :math:`\\nu` with a
@@ -150,7 +150,7 @@ class CGLE(SemiLinearFirstOrderSystem):
     def num_states(self) -> int:
         return 2 * self.K + 1
 
-    def __init__(self, K: int = 256, L: float = 100.0,
+    def __init__(self, K: int = 256, L: float = 10.0,
                  R: float = 1.0, nu: float = 1.0, mu: float = 2.0) -> None:
         """Initialize the superclass and model parameters.
 
@@ -160,7 +160,7 @@ class CGLE(SemiLinearFirstOrderSystem):
         |   ``K`` (``int``): the number of Fourier modes :math:`K` with a
                 default value of ``256``
         |   ``L`` (``float``): the length of the domain :math:`L` with a
-                default value of ``100.0``
+                default value of ``10.0``
         |   ``R`` (``float``): the value of the parameter :math:`R` with a
                 default value of ``1.0``
         |   ``nu`` (``float``): the value of the parameter :math:`\\nu` with a
