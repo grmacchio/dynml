@@ -7,6 +7,7 @@ floating-point arithmetic.
 
 
 # import built-in python-package code
+from math import prod
 from tqdm import tqdm  # type: ignore  # no stubs
 from typing import Callable
 # import external python-package code
@@ -65,20 +66,20 @@ def gen_num_trajs(discrete_sys: DiscreteSystem,  # noqa: C901
     # check if the discrete system's number of states matches the initial
     # condition's number of states
     first_ic = gen_ic()
-    num_states = first_ic.shape[0]
-    if num_states != discrete_sys.num_states:
-        raise ValueError("The initial condition's number of states does "
-                         "not match the discrete system's number of states.")
+    dims_state = tuple(first_ic.shape)
+    if dims_state != discrete_sys.dims_state:
+        raise ValueError("The initial condition's state dimensions does "
+                         "not match the discrete system's state dimensions.")
     # initialize the numerical trajectories storage tensor
-    traj = zeros((num_traj, num_samples, num_states), dtype=first_ic.dtype,
+    traj = zeros((num_traj, num_samples) + dims_state, dtype=first_ic.dtype,
                  device=output)
     # set the initial conditions
-    current = zeros((num_traj, num_states), dtype=first_ic.dtype,
+    current = zeros((num_traj,) + dims_state, dtype=first_ic.dtype,
                     device=compute)
     current[0, :] = first_ic.to(compute)
     for i in range(num_traj - 1):
-        current[i + 1, :] = gen_ic().to(compute)
-    traj[:, 0, :] = current.to(output)
+        current[i + 1] = gen_ic().to(compute)
+    traj[:, 0] = current.to(output)
     # determine the original device of the discrete system
     orig_device = next(discrete_sys.parameters()).device
     # send the discrete system to the compute device
@@ -88,34 +89,34 @@ def gen_num_trajs(discrete_sys: DiscreteSystem,  # noqa: C901
     if compute == 'cpu':
         current = discrete_sys.map(current)
         pbar_steps.update(1)
-        traj[:, 1, :] = current.to(output)
+        traj[:, 1] = current.to(output)
         batch_size = num_samples - 1
     elif 'cuda' in compute:
         mem_baseline = max_memory_allocated()
         current = discrete_sys.map(current)
         pbar_steps.update(1)
-        traj[:, 1, :] = current.to(output)
+        traj[:, 1] = current.to(output)
         mem_spike = max_memory_allocated() - mem_baseline
         avail_mem, _ = mem_get_info()
-        mem_per_sample = num_traj * 1 * num_states * traj.element_size()
+        mem_per_sample = num_traj * 1 * prod(dims_state) * traj.element_size()
         batch_size = int((0.9 * avail_mem - mem_spike) / mem_per_sample)
     # map the initial conditions
     for sample_idx in range(1, num_samples, batch_size):
         subbatch_size = min(batch_size, num_samples - sample_idx)
         if sample_idx != 1:
             del batch
-        batch: Tensor = zeros((num_traj, subbatch_size, num_states),
+        batch: Tensor = zeros((num_traj, subbatch_size) + dims_state,
                               dtype=first_ic.dtype, device=compute)
         if sample_idx == 1:
-            batch[:, 0, :] = current
+            batch[:, 0] = current
         else:
             current = discrete_sys.map(current)
             pbar_steps.update(1)
-            batch[:, 0, :] = current
+            batch[:, 0] = current
         for i in range(subbatch_size - 1):
             current = discrete_sys.map(current)
             pbar_steps.update(1)
-            batch[:, i + 1, :] = current
+            batch[:, i + 1] = current
         traj[:, sample_idx:sample_idx + subbatch_size] = batch.to(output)
     # send the discrete system back to its original device
     discrete_sys = discrete_sys.to(orig_device)

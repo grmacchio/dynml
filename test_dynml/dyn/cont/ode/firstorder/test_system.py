@@ -5,7 +5,7 @@ This module tests the ``dynml.dyn.cont.ode.firstorder.system`` module.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import float64, set_default_dtype, tensor, Tensor
 from torch.nn import Parameter
@@ -29,7 +29,7 @@ class FirstOrderSystemExample(FirstOrderSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``R`` for real numbers
-    |   ``num_states`` (``int``): the number two
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions ``(2,)``
 
     | **Abstract Methods**
     |   None
@@ -50,8 +50,8 @@ class FirstOrderSystemExample(FirstOrderSystem):
         return 'R'
 
     @property
-    def num_states(self) -> int:
-        return 2
+    def dims_state(self) -> Tuple[int, ...]:
+        return (2,)
 
     def rhs(self, x: Tensor) -> Tensor:
         """Return the input times two.
@@ -101,7 +101,7 @@ def test_FirstOrderSystem() -> None:
 
     This method tests the ``FirstOrderSystem`` class. In particular, this
     method instantiates a subclass of ``FirstOrderSystem`` and tests,
-    ``field``, ``num_states``, and ``rhs()``.
+    ``field``, ``dims_state``, and ``rhs()``.
 
     | **Args**
     |   None
@@ -124,7 +124,7 @@ def test_FirstOrderSystem() -> None:
     # test field
     assert test.field == 'R'
     # test num_states
-    assert test.num_states == 2
+    assert test.dims_state == (2,)
     # test rhs
     x = tensor([[1., 2.], [3., 4.]], device=device)
     desired = 2 * x
@@ -147,7 +147,7 @@ class SemiLinearFirstOrderSystemExample(SemiLinearFirstOrderSystem):
     | **Attributes**
     |   ``A`` (``Parameter``): the matrix ``torch.tensor([[2, 1], [1, 2]])``
     |   ``field`` (``str``): ``R`` for real numbers
-    |   ``num_states`` (``int``): the number two
+    |   ``dims_state`` (``int``): the state dimensions ``(2,)``
 
     | **Abstract Methods**
     |   None
@@ -173,8 +173,8 @@ class SemiLinearFirstOrderSystemExample(SemiLinearFirstOrderSystem):
         return 'R'
 
     @property
-    def num_states(self) -> int:
-        return 2
+    def dims_state(self) -> Tuple[int, ...]:
+        return (2,)
 
     def nonlinear(self, x: Tensor) -> Tensor:
         """Return the input times three.
@@ -224,7 +224,7 @@ def test_SemiLinearFirstOrderSystem() -> None:
 
     This method tests the ``SemiLinearFirstOrderSystem`` class. In particular,
     this method instantiates a subclass of ``SemiLinearFirstOrderSystem`` and
-    tests ``A``, ``field``, ``num_states``, and ``nonlinear()``.
+    tests ``A``, ``field``, ``dims_state``, and ``nonlinear()``.
 
     | **Args**
     |   None
@@ -251,7 +251,7 @@ def test_SemiLinearFirstOrderSystem() -> None:
     # test field
     assert test.field == 'R'
     # test num_states
-    assert test.num_states == 2
+    assert test.dims_state == (2,)
     # test nonlinear
     x = tensor([[1., 2.], [3., 4.]], device=device)
     desired = 3 * x

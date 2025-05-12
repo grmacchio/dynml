@@ -8,7 +8,7 @@ first-order ordinary-differential-equation time discretization.
 
 # import built-in python-package code
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 # import external python-package code
 from torch import diag, eye, Tensor
 from torch.linalg import inv, lu_factor, lu_solve, norm
@@ -77,11 +77,11 @@ class ExplicitTimeStepMethod(ABC, Module):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (self.sys.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -244,11 +244,11 @@ class Euler(ExplicitTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -327,11 +327,11 @@ class RK2(ExplicitTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + sys.dims_state``
 
         | **Raises**
         |   None
@@ -412,11 +412,11 @@ class RK4(ExplicitTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -719,7 +719,7 @@ class Inv(LinearSolver):
             of linear solvers
 
     | **Attributes**
-    |   ``M_inv`` (``Parameter``): the inverse of the matrix ``M``
+    |   ``M_inv_T`` (``Parameter``): the inverse of the matrix ``M`` transposed
 
     | **Abstract Methods**
     |   None
@@ -759,7 +759,7 @@ class Inv(LinearSolver):
         """
         # compute the inverse and initialize the superclasses
         super().__init__(M)
-        self.M_inv = Parameter(inv(M), requires_grad=False)
+        self.M_inv_T = Parameter(inv(M).T, requires_grad=False)
 
     def __call__(self, yT: Tensor) -> Tensor:
         """Return the solution :math:`x^T` given the input :math:`y^T`.
@@ -783,7 +783,7 @@ class Inv(LinearSolver):
         |   None
         """
         # return the solution x given the input y
-        return yT @ self.M_inv
+        return yT @ self.M_inv_T
 
 
 class Diag(LinearSolver):
@@ -946,11 +946,11 @@ class SemiLinearTimeStepMethod(ABC, Module):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -1132,7 +1132,7 @@ class RK2CN(SemiLinearTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 148.
         """
         # gather the matrices used in the implicit solvers
-        Ms = [eye(self.sys.num_states, device=self.sys.A.device)
+        Ms = [eye(self.sys.dims_state[-1], device=self.sys.A.device)
               - 0.5 * self.dt * self.sys.A]
         # initialize the implicit solvers
         implicit_solver_insts = [implicit_solver_cls(M) for M in Ms]
@@ -1146,11 +1146,11 @@ class RK2CN(SemiLinearTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -1257,7 +1257,7 @@ class RK3CN(SemiLinearTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 149.
         """
         Bp = [1.0 / 6, 5.0 / 24, 1.0 / 8]
-        Ms = [eye(self.sys.num_states, device=self.sys.A.device)
+        Ms = [eye(self.sys.dims_state[-1], device=self.sys.A.device)
               - b * self.dt * self.sys.A for b in Bp]
         implicit_solver_insts = [implicit_solver_cls(M) for M in Ms]
         self.implicit_solver_insts = ModuleList(implicit_solver_insts)
@@ -1270,11 +1270,11 @@ class RK3CN(SemiLinearTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (sys.num_states,)``
+                ``(...,) + sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (sys.num_states,)``
+                time-step with shape ``(...,) + sys.dims_state``
 
         | **Raises**
         |   None
@@ -1336,7 +1336,7 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
 
     | **Attributes**
     |   ``field`` (``str``): the field the dynamical system is defined over
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``method`` (``Union[ExplicitTimeStepMethod,
             SemiLinearTimeStepMethod]``): the time-stepping method
 
@@ -1359,8 +1359,8 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
         return self.method.sys.field
 
     @property
-    def num_states(self) -> int:
-        return self.method.sys.num_states
+    def dims_state(self) -> Tuple[int, ...]:
+        return self.method.sys.dims_state
 
     def map(self, x: Tensor) -> Tensor:
         """Return the output of ``self.method.approx_flow_map()``.
@@ -1369,11 +1369,11 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (self.num_states,)``
+                time-step with shape ``(...,) + self.dims_state``
 
         | **Raises**
         |   None

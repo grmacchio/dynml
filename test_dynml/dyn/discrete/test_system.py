@@ -5,7 +5,7 @@ This module tests the dynml.dyn.discrete.system module.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import float64, ones, set_default_dtype, Tensor, zeros
 from torch.cuda import is_available
@@ -28,7 +28,7 @@ class DiscreteSystemExample(DiscreteSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``R`` for real numbers
-    |   ``num_states`` (``int``): the number four
+    |   ``dims_state`` (``int``): the state dimensions
 
     | **Abstract Methods**
     |   None
@@ -49,8 +49,8 @@ class DiscreteSystemExample(DiscreteSystem):
         return 'R'
 
     @property
-    def num_states(self) -> int:
-        return self._num_states
+    def dims_state(self) -> Tuple[int, ...]:
+        return self._dims_state
 
     def map(self, x: Tensor) -> Tensor:
         """Return the input plus one.
@@ -71,7 +71,7 @@ class DiscreteSystemExample(DiscreteSystem):
         """
         return x + self.ones
 
-    def __init__(self, num_states: int) -> None:
+    def __init__(self, dims_state: Tuple[int, ...]) -> None:
         """Initialize the superclass and the attributes.
 
         This method initializes the superclass and the attributes.
@@ -91,15 +91,15 @@ class DiscreteSystemExample(DiscreteSystem):
         # initialize the superclass
         super().__init__()
         # initialize the attributes
-        self._num_states = num_states
-        self.ones = Parameter(ones((num_states,)))
+        self._dims_state = dims_state
+        self.ones = Parameter(ones(self._dims_state))
 
 
 def test_DiscreteSystem() -> None:
     """Test the ``DiscreteSystem`` class.
 
     This method tests the ``DiscreteSystem`` class. In particular, it
-    instantiates ``DiscreteSystemExample`` and tests ``field``, ``num_states``,
+    instantiates ``DiscreteSystemExample`` and tests ``field``, ``dims_state``,
     and ``map()``.
 
     | **Args**
@@ -119,12 +119,12 @@ def test_DiscreteSystem() -> None:
     # find the device
     device = 'cuda' if is_available() else 'cpu'
     # initialize DiscreteSystemExample
-    num_states = 4
-    test = DiscreteSystemExample(num_states).to(device)
+    dims_state = (4, 3)
+    test = DiscreteSystemExample(dims_state).to(device)
     # test field
     assert test.field == 'R'
     # test num_states
-    assert test.num_states == num_states
+    assert test.dims_state == dims_state
     # test map
-    x = zeros((2, 4, num_states), device=device)
+    x = zeros((2, 4) + dims_state, device=device)
     assert test.map(x).allclose(x + 1.0, atol=0.0)

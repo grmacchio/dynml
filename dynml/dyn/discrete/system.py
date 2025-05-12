@@ -6,6 +6,7 @@ This module defines the discrete dynamical system representation.
 
 # import built-in python-package code
 from abc import ABC, abstractmethod
+from typing import Tuple
 # import external python-package code
 from torch import Tensor
 from torch.nn import Module
@@ -25,7 +26,7 @@ class DiscreteSystem(ABC, Module):
 
     | **Abstract Attributes**
     |   ``field`` (``str``): the field the dynamical system is defined over
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
 
     | **Class Attributes**
     |   None
@@ -72,7 +73,7 @@ class DiscreteSystem(ABC, Module):
 
     @property
     @abstractmethod
-    def num_states(self) -> int:
+    def dims_state(self) -> Tuple[int, ...]:
         ...
 
     @abstractmethod
@@ -83,11 +84,11 @@ class DiscreteSystem(ABC, Module):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Return**
         |   ``Tensor``: the mapping of the input state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Raises**
         |   None

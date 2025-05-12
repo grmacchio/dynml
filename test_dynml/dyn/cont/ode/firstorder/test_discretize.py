@@ -69,11 +69,11 @@ class ExplicitTimeStepMethodExample(ExplicitTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (self.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -311,8 +311,7 @@ class LinearSolverExample(LinearSolver):
     """Represent a subclass of ``LinearSolver``.
 
     This class represents a subclass of ``LinearSolver``. Here, we are
-    interested in solving the linear system ``xM^T = y`` using the matrix
-    inverse.
+    interested in solving the linear system :math:`x^T M^T = y^T`.
 
     | **Abstract Attributes**
     |  None
@@ -322,7 +321,7 @@ class LinearSolverExample(LinearSolver):
             linear solvers
 
     | **Attributes**
-    |  ``M_inv`` (``Tensor``): the inverse of the input matrix
+    |  ``M_inv_T`` (``Tensor``): the inverse of the input matrix transposed
 
     | **Abstract Methods**
     |  None
@@ -361,21 +360,21 @@ class LinearSolverExample(LinearSolver):
         """
         # compute the matrix inverse and initialize the superclass
         super().__init__(M)
-        self.M_inv = Parameter(M.inverse(), requires_grad=False)
+        self.M_inv_T = Parameter(M.inverse().T, requires_grad=False)
 
-    def __call__(self, y: Tensor) -> Tensor:
-        """Return the solution ``x`` given the input ``y``.
+    def __call__(self, yT: Tensor) -> Tensor:
+        """Return the solution :math:`x^T` given the input :math:`y^T`.
 
-        This method returns the solution ``x`` given the input ``y``. Here, the
-        input and solution satisfy the linear system of equations:
-        ``xM^T = y``.
+        This method returns the solution :math:`x` given the input :math:`y`.
+        Here, the input and solution satisfy the linear system of equations:
+        :math:`x^TM^T = y^T`.
 
         | **Args**
-        |   ``y`` (``Tensor``): the input ``y`` with shape
+        |   ``yT`` (``Tensor``): the input ``yT`` with shape
                 ``(...,) + (n,)``
 
         | **Return**
-        |  ``Tensor``: the solution ``x`` with shape ``(...,) + (n,)``
+        |  ``Tensor``: the solution ``xT`` with shape ``(...,) + (n,)``
 
         | **Raises**
         |  None
@@ -383,7 +382,7 @@ class LinearSolverExample(LinearSolver):
         | **References**
         |  None
         """
-        return y @ self.M_inv.t()
+        return yT @ self.M_inv_T
 
 
 def test_LinearSolver() -> None:
@@ -412,16 +411,16 @@ def test_LinearSolver() -> None:
     device = 'cuda' if is_available() else 'cpu'
     # create an instance of LinearSolverExample
     M = tensor([[2.0, 0.0], [0.0, 3.0]], device=device)
-    M_inv = tensor([[1 / 2.0, 0.0], [0.0, 1.0 / 3.0]], device=device)
+    M_inv_T = tensor([[1 / 2.0, 0.0], [0.0, 1.0 / 3.0]], device=device).T
     test = LinearSolverExample(M)
     # test registry
     assert ("LinearSolverExample".lower() in LinearSolver.registry.keys())
     # test M_inv
-    assert test.M_inv.allclose(M_inv, atol=0.0)
+    assert test.M_inv_T.allclose(M_inv_T, atol=0.0)
     # test __call__()
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
-    desired = y @ M_inv
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
+    desired = yT @ M_inv_T
+    assert test(yT).allclose(desired, atol=0.0)
     # test methods()
     assert ("LinearSolverExample".lower() in LinearSolver.methods())
     # test lookup()
@@ -434,10 +433,10 @@ def test_LinearSolver() -> None:
         assert str(exc) == ("'NotAKey' is an unknown linear solver")
     # test .to() capabilities
     test = test.to('cpu')
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
-    M_inv = M_inv.to('cpu')
-    desired = y @ M_inv
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
+    M_inv = M_inv_T.to('cpu')
+    desired = yT @ M_inv_T
+    assert test(yT).allclose(desired, atol=0.0)
 
 
 # test LU
@@ -477,9 +476,9 @@ def test_LU() -> None:
     # test pivots
     assert test.pivots.allclose(_pivots, atol=0.0)
     # test __call__()
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
-    desired = y @ M_inv
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
+    desired = yT @ M_inv
+    assert test(yT).allclose(desired, atol=0.0)
     # test methods()
     assert ("lu" in LU.methods())
     # test lookup()
@@ -491,10 +490,10 @@ def test_LU() -> None:
         assert str(exc) == ("'NotAKey' is an unknown linear solver")
     # test .to() capabilities
     test = test.to('cpu')
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
     M_inv = M_inv.to('cpu')
-    desired = y @ M_inv
-    assert test(y).allclose(desired, atol=0.0)
+    desired = yT @ M_inv
+    assert test(yT).allclose(desired, atol=0.0)
 
 
 def test_Inv() -> None:
@@ -523,16 +522,16 @@ def test_Inv() -> None:
     device = 'cuda' if is_available() else 'cpu'
     # create an instance of Inv
     M = tensor([[2.0, 1.0], [1.0, 2.0]], device=device)
-    M_inv = tensor([[2.0, -1.0], [-1.0, 2.0]], device=device) / 3.0
+    M_inv_T = (tensor([[2.0, -1.0], [-1.0, 2.0]], device=device) / 3.0).T
     test = Inv(M)
     # test registry
     assert ("inv" in Inv.registry.keys())
     # test M_inv
-    assert test.M_inv.allclose(M_inv, atol=0.0)
+    assert test.M_inv_T.allclose(M_inv_T, atol=0.0)
     # test __call__()
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
-    desired = y @ M_inv.T
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
+    desired = yT @ M_inv_T
+    assert test(yT).allclose(desired, atol=0.0)
     # test methods()
     assert ("inv" in Inv.methods())
     # test lookup()
@@ -544,10 +543,10 @@ def test_Inv() -> None:
         assert str(exc) == ("'NotAKey' is an unknown linear solver")
     # test .to() capabilities
     test = test.to('cpu')
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
-    M_inv = M_inv.to('cpu')
-    desired = y @ M_inv.T
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
+    M_inv = M_inv_T.to('cpu')
+    desired = yT @ M_inv_T
+    assert test(yT).allclose(desired, atol=0.0)
 
 
 # test Diag
@@ -584,9 +583,9 @@ def test_Diag() -> None:
     # test d_inv
     assert test.d_inv.allclose(diag(M_inv), atol=0.0)
     # test __call__()
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
-    desired = y @ M_inv.T
-    assert test(y).allclose(desired, atol=0.0)
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device=device)
+    desired = yT @ M_inv.T
+    assert test(yT).allclose(desired, atol=0.0)
     # test methods()
     assert ("diag" in Diag.methods())
     # test lookup()
@@ -598,10 +597,10 @@ def test_Diag() -> None:
         assert str(exc) == ("'NotAKey' is an unknown linear solver")
     # test .to() capabilities
     test = test.to('cpu')
-    y = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
+    yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
     M_inv = M_inv.to('cpu')
-    desired = y @ M_inv.T
-    assert test(y).allclose(desired, atol=0.0)
+    desired = yT @ M_inv.T
+    assert test(yT).allclose(desired, atol=0.0)
 
 
 # test SemiLinearTimeStepMethod
@@ -668,7 +667,7 @@ class SemiLinearTimeStepMethodExample(SemiLinearTimeStepMethod):
                 Flow. Vol. 148. New York: Springer, 2002. p. 148.
         """
         # initialize the implicit solvers
-        self.Ms = [eye(self.sys.num_states) - 0.5 * self.dt * self.sys.A]
+        self.Ms = [eye(self.sys.dims_state[-1]) - 0.5 * self.dt * self.sys.A]
         self.implicit_solvers_insts = [implicit_solver_cls(M) for M in self.Ms]
 
     def approx_flow_map(self, x: Tensor) -> Tensor:
@@ -679,11 +678,11 @@ class SemiLinearTimeStepMethodExample(SemiLinearTimeStepMethod):
 
         | **Args**
         |   ``x`` (``Tensor``): the input state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.sys.dims_state``
 
         | **Return**
         |   ``Tensor``: approximately, the input state advanced by one
-                time-step with shape ``(...,) + (self.num_states,)``
+                time-step with shape ``(...,) + self.sys.dims_state``
 
         | **Raises**
         |   None
@@ -767,7 +766,7 @@ def test_SemiLinearTimeStepMethod() -> None:
     # test sys
     assert test.sys == sys
     # test init_implicit_solvers()
-    Id = eye(sys.num_states).to(device)
+    Id = eye(sys.dims_state[-1]).to(device)
     implicit_solver = LU(Id - 0.5 * dt * sys.A)
     x = tensor([[0.0, 1.0], [2.0, 3.0]], device=device)
     desired = implicit_solver(x)
@@ -829,7 +828,7 @@ def test_RK2CN() -> None:
     # test sys
     assert test.sys == sys
     # test init_implicit_solvers()
-    Id = eye(sys.num_states).to(device)
+    Id = eye(sys.dims_state[-1]).to(device)
     implicit_solver = LU(Id - 0.5 * dt * sys.A)
     x = tensor([[0.0, 1.0], [2.0, 3.0]], device=device)
     desired = implicit_solver(x)
@@ -887,17 +886,17 @@ def test_RK3CN() -> None:
     # test sys
     assert test.sys == sys
     # test init_implicit_solvers()
-    Id = eye(sys.num_states).to(device)
+    Id = eye(sys.dims_state[-1]).to(device)
     implicit_solver1 = LU(Id - 1/6 * dt * sys.A)
     x = tensor([[0.0, 1.0], [2.0, 3.0]], device=device)
     desired = implicit_solver1(x)
     assert test.implicit_solver_insts[0](x).allclose(desired, atol=0.0)
-    Id = eye(sys.num_states).to(device)
+    Id = eye(sys.dims_state[-1]).to(device)
     implicit_solver2 = LU(Id - 5/24 * dt * sys.A)
     x = tensor([[0.0, 1.0], [2.0, 3.0]], device=device)
     desired = implicit_solver2(x)
     assert test.implicit_solver_insts[1](x).allclose(desired, atol=0.0)
-    Id = eye(sys.num_states).to(device)
+    Id = eye(sys.dims_state[-1]).to(device)
     implicit_solver3 = LU(Id - 1/8 * dt * sys.A)
     x = tensor([[0.0, 1.0], [2.0, 3.0]])
     desired = implicit_solver3(x)
@@ -930,7 +929,7 @@ def test_DiscretizedFirstOrderSystem() -> None:
 
     This method tests the ``DiscretizedFirstOrderSystem`` class. In particular,
     this method instantiates a ``DiscretizedFirstOrderSystem`` object and tests
-    ``field``, ``num_states``, ``method``, and ``map()``.
+    ``field``, ``dims_state``, ``method``, and ``map()``.
 
     | **Args**
     |   None
@@ -959,8 +958,8 @@ def test_DiscretizedFirstOrderSystem() -> None:
     assert test1.field == sys1.field
     assert test2.field == sys2.field
     # test num_states
-    assert test1.num_states == sys1.num_states
-    assert test2.num_states == sys2.num_states
+    assert test1.dims_state == sys1.dims_state
+    assert test2.dims_state == sys2.dims_state
     # test method
     assert test1.method == method1
     assert test2.method == method2

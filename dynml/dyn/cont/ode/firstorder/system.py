@@ -6,6 +6,7 @@ This module defines some first-order O.D.E. dynamical-system representations.
 
 # import built-in python-package code
 from abc import ABC, abstractmethod
+from typing import Tuple
 # import external python-package code
 from torch import Tensor
 from torch.nn import Module
@@ -26,7 +27,7 @@ class FirstOrderSystem(ABC, Module):
 
     | **Abstract Attributes**
     |   ``field`` (``str``): the field the dynamical system is defined over
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
 
     | **Class Attributes**
     |   None
@@ -73,7 +74,7 @@ class FirstOrderSystem(ABC, Module):
 
     @property
     @abstractmethod
-    def num_states(self) -> int:
+    def dims_state(self) -> Tuple[int, ...]:
         ...
 
     @abstractmethod
@@ -84,11 +85,11 @@ class FirstOrderSystem(ABC, Module):
 
         | **Args**
         |   ``x`` (``Tensor``): a state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Return**
         |   ``Tensor``: the right-hand-side with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Raises**
         |   None
@@ -131,7 +132,7 @@ class SemiLinearFirstOrderSystem(FirstOrderSystem):
     | **Abstract Attributes**
     |   ``A`` (``Tensor``): the matrix representation of the linear function
     |   ``field`` (``str``): the field the dynamical system is defined over
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
 
     | **Class Attributes**
     |   None
@@ -166,11 +167,11 @@ class SemiLinearFirstOrderSystem(FirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): a state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Return**
         |   ``Tensor``: the nonlinear function with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Raises**
         |   None
@@ -188,11 +189,11 @@ class SemiLinearFirstOrderSystem(FirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): a state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Return**
         |   ``Tensor``: the right-hand-side evaluated at the state with shape
-                ``(...,) + (self.num_states,)``
+                ``(...,) + self.dims_state``
 
         | **Raises**
         |   None

@@ -5,6 +5,7 @@ This module tests the dynml.dyn.discrete.numsolve module.
 
 # import built-in python-package code
 from random import seed as python_seed
+from math import prod
 # import external python-package code
 from torch import float64, mean, no_grad, ones_like, randn, set_default_dtype
 from torch import stack, Tensor
@@ -48,10 +49,10 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     set_default_dtype(float64)
     # test that an error is raised when the compute device is not recognized
     try:
-        num_states = 4
+        dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic_1() -> Tensor:  # noqa: E306
             return randn(num_states,)
         gen_num_trajs(ds, gen_ic_1, num_traj, num_samples, compute='unknown')
@@ -60,10 +61,10 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         assert str(exc) == "The compute device is not recognized."
     # test that an error is raised when the output device is not recognized
     try:
-        num_states = 4
+        dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic_2() -> Tensor:  # noqa: E306
             return randn(num_states,)
         gen_num_trajs(ds, gen_ic_2, num_traj, num_samples, output='unknown')
@@ -73,41 +74,41 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     # test that an error is raised when the initial condition's number of
     # states does not match the discrete system's number of states
     try:
-        num_states = 4
+        dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic_incorrect() -> Tensor:  # noqa: E306
-            return randn(num_states - 1,)
+            return randn((4, 2))
         gen_num_trajs(ds, gen_ic_incorrect, num_traj, num_samples)
         raise NotImplementedError("Test not implemented")
     except ValueError as exc:
-        assert str(exc) == ("The initial condition's number of states does "
-                            + "not match the discrete system's number of "
-                            + "states.")
+        assert str(exc) == ("The initial condition's state dimensions does "
+                            + "not match the discrete system's state "
+                            + "dimensions.")
     # test gen_num_trajs() computing on C.P.U. and output to the C.P.U. and
     # backwards differentiation with respect to gen_num_trajs() output
     python_seed(0)
     torch_manual_seed(0)
     cuda_manual_seed(0)
-    num_states = 4
+    dims_state = (4, 3)
     num_traj = 4
     num_samples = 4
     compute = 'cpu'
     output = 'cpu'
-    ds = DiscreteSystemExample(num_states)
+    ds = DiscreteSystemExample(dims_state)
     def gen_ic() -> Tensor:  # noqa: E306
-        return randn(num_states,)
+        return randn(dims_state,)
     test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                          compute=compute, output=output, pbar=False)
     assert test.device.type == output
-    assert tuple(test.shape) == (num_traj, num_samples, num_states)
+    assert tuple(test.shape) == (num_traj, num_samples) + dims_state
     python_seed(0)
     torch_manual_seed(0)
     cuda_manual_seed(0)
     desired = stack(tuple(gen_ic() for _ in range(num_traj)), dim=0).to(output)
     for k in range(num_samples):
-        assert test[:, k, :].allclose(desired, atol=0.0)
+        assert test[:, k].allclose(desired, atol=0.0)
         desired = desired + 1.0
     mean(test - ones_like(test, device=output)).backward()
     # test gen_num_trajs() computing on G.P.U. and output to the G.P.U.
@@ -115,14 +116,14 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)
-        num_states = 4
+        dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
         compute = 'cuda'
         output = 'cuda'
         ds = DiscreteSystemExample(num_states)
         def gen_ic() -> Tensor:  # noqa: E306
-            return randn(num_states,)
+            return randn(dims_state)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
@@ -133,7 +134,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
-            assert test[:, k, :].allclose(desired, atol=0.0)
+            assert test[:, k].allclose(desired, atol=0.0)
             desired = desired + 1.0
         input = ones_like(test, device=output, requires_grad=True)
         mean(test - input).backward()
@@ -142,25 +143,25 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)
-        num_traj = 4
+        dims_state = (4, 3)
         num_states = 4
         num_samples = 4
         compute = 'cuda'
         output = 'cpu'
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic() -> Tensor:  # noqa: E306
             return randn(num_states,)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
-        assert tuple(test.shape) == (num_traj, num_samples, num_states)
+        assert tuple(test.shape) == (num_traj, num_samples) + dims_state
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
-            assert test[:, k, :].allclose(desired, atol=0.0)
+            assert test[:, k].allclose(desired, atol=0.0)
             desired = desired + 1.0
         input = ones_like(test, device=output, requires_grad=True)
         mean(test - input).backward()
@@ -169,26 +170,25 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)
-        _, tot_mem = mem_get_info()
-        num_traj = 4
+        dims_state = (4, 3)
         num_states = 4
         num_samples = 4
         compute = 'cpu'
         output = 'cuda'
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic() -> Tensor:  # noqa: E306
-            return randn(num_states,)
+            return randn(dims_state)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
-        assert tuple(test.shape) == (num_traj, num_samples, num_states)
+        assert tuple(test.shape) == (num_traj, num_samples) + dims_state
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
-            assert test[:, k, :].allclose(desired, atol=0.0)
+            assert test[:, k].allclose(desired, atol=0.0)
             desired = desired + 1.0
         input = ones_like(test, device=output, requires_grad=True)
         mean(test - input).backward()
@@ -198,26 +198,27 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         with no_grad():
             _, tot_mem = mem_get_info()
             num_traj = 400
-            num_states = 400
+            dims_state = (40, 30)
+            num_states = prod(dims_state)
             mem_per_sample = num_traj * randn((1,)).element_size() * num_states
             num_samples = int(1.25 * tot_mem / mem_per_sample)
             compute = 'cuda'
             output = 'cpu'
-            ds = DiscreteSystemExample(num_states)
+            ds = DiscreteSystemExample(dims_state)
             python_seed(0)
             torch_manual_seed(0)
             cuda_manual_seed(0)
             def gen_ic() -> Tensor:  # noqa: E306
-                return randn(num_states,)
+                return randn(dims_state)
             test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                                  compute=compute, output=output, pbar=False)
             assert test.device.type == output
-            assert tuple(test.shape) == (num_traj, num_samples, num_states)
+            assert tuple(test.shape) == (num_traj, num_samples) + dims_state
             python_seed(0)
             torch_manual_seed(0)
             cuda_manual_seed(0)
             desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                             dim=0).to(output)
             for k in range(num_samples):
-                assert test[:, k, :].allclose(desired, atol=0.0)
+                assert test[:, k].allclose(desired, atol=0.0)
                 desired = desired + 1.0
