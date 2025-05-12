@@ -121,13 +121,13 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         num_samples = 4
         compute = 'cuda'
         output = 'cuda'
-        ds = DiscreteSystemExample(num_states)
+        ds = DiscreteSystemExample(dims_state)
         def gen_ic() -> Tensor:  # noqa: E306
             return randn(dims_state)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
-        assert tuple(test.shape) == (num_traj, num_samples, num_states)
+        assert tuple(test.shape) == (num_traj, num_samples) + dims_state
         python_seed(0)
         torch_manual_seed(0)
         cuda_manual_seed(0)

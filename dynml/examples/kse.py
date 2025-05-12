@@ -303,7 +303,7 @@ class KSE(SemiLinearFirstOrderSystem):
                      zeros(U.shape[:-1] + (self._K_prime - self.K,),
                            dtype=U.dtype,
                            device=next(self.parameters()).device.type)),
-                           dim=-1)
+                    dim=-1)
         return irfft(U_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, u: Tensor) -> Tensor:

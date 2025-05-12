@@ -434,7 +434,7 @@ def test_LinearSolver() -> None:
     # test .to() capabilities
     test = test.to('cpu')
     yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
-    M_inv = M_inv_T.to('cpu')
+    M_inv_T = M_inv_T.to('cpu')
     desired = yT @ M_inv_T
     assert test(yT).allclose(desired, atol=0.0)
 
@@ -544,7 +544,7 @@ def test_Inv() -> None:
     # test .to() capabilities
     test = test.to('cpu')
     yT = tensor([[5.0, 6.0], [7.0, 8.0]], device='cpu')
-    M_inv = M_inv_T.to('cpu')
+    M_inv_T = M_inv_T.to('cpu')
     desired = yT @ M_inv_T
     assert test(yT).allclose(desired, atol=0.0)
 
