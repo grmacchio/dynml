@@ -12,6 +12,7 @@ examples
 
     burgers
     cgle
+    cylinder
     kse
     line
     parabola

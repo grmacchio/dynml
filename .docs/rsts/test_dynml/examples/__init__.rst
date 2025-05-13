@@ -12,6 +12,7 @@ examples
 
     test_burgers
     test_cgle
+    test_cylinder
     test_kse
     test_line
     test_parabola
