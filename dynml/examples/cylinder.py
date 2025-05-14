@@ -182,80 +182,14 @@ class Cylinder(DiscreteSystem):
     stagnation streamline. Let :math:`\\Delta s_1 = L_1 / (N_1 - 1)` and
     :math:`\\Delta s_2 = 2 L_2 / (2 N_2)`. Here, we let the state be :math:`x =
     (\\psi_{i, j}, \\omega_{i, j})_{(i, j) \\in G}`. Of course, one could cut
-    out the cylinder points since they are determined by the fluid points.
-    Here, for computational simplicity, we will keep the keep the cylinder
-    points in the state. Let :math:`x` be a state satisfying the boundary
-    conditions. Please see ``gen_ic()`` for an example on how to generate
-    such a state.
-
-    Given a state :math:`x` we generate the vorticity
-    :math:`\\omega_{i, j}` by (1) setting the left, top, and bottom boundary
-    conditions to zero and (2) determining the right boundary by using
-    :math:`\\text{BC4a}`:
-
-    .. math::
-        \\begin{align*}
-            U_\\infty \\partial \\omega / \\partial s_1 \\approx
-            \\nu (\\nabla_s \\cdot \\nabla_s) \\omega
-        \\end{align*}
-
-    .. math::
-        \\begin{align*}
-            U_\\infty \\frac{
-                3 \\omega_{i,j} - 4 \\omega_{i - 1,j} + \\omega_{i - 2,j}
-            }{2 \\Delta s_1}
-            &\\approx \\nu
-            \\frac{2 \\omega_{i, j} - 5 \\omega_{i - 1, j}
-            + 4 \\omega_{i - 2, j} - \\omega_{i - 3, j}}{\\Delta s_1^3} \\\\
-            & \\qquad + \\: \\nu \\frac{\\omega_{i, j + 1} - 2 \\omega_{i, j}
-            + \\omega_{i, j - 1}}{\\Delta s_2^2}
-        \\end{align*}
-
-    .. math::
-        \\begin{align*}
-            \\omega_{i,j}
-            &\\approx \\frac{U_\\infty \\left(\\frac{4 \\omega_{i-1, j}
-            - \\omega_{i-2, j}}{2 \\Delta s_1}\\right)
-            + \\nu \\left( \\frac{-5 \\omega_{i-1, j} + 4 \\omega_{i-2, j}
-            - \\omega_{i-3,j}}{\\Delta s_1^3} + \\frac{\\omega_{i, j+1}
-            + \\omega_{i, j-1}}{\\Delta s_2^2}\\right)}{
-            \\frac{3 U_\\infty}{2 \\Delta s_1} - \\frac{2 \\nu}{\\Delta s_1^3}
-            + \\frac{2 \\nu}{\\Delta s_2^2}
-            },
-        \\end{align*}
-
-    where :math:`i = N_1` and :math:`j \\in [2 : 2 N_2]`. We now have the
-    tensor :math:`\\omega_{i, j}`. From this, we solve the non-boundary points
-    of :math:`\\psi_{i, j}` by solving the Poisson equation. This was done
-    using the Jacobi method defined by
-
-    .. math::
-        \\begin{align*}
-            \\psi_{i, j}^{(k+1)} = \\frac{1}{2 \\left(
-                \\frac{1}{\\Delta s_1^2} + \\frac{1}{\\Delta s_2^2}
-            \\right)} \\left(
-                \\frac{\\psi_{i + 1, j}^{(k)}
-                + \\psi_{i - 1}^{(k)}}{\\Delta s_1^2}
-                + \\frac{\\psi_{i, j + 1}^{(k)}
-                + \\psi_{i, j - 1}^{(k)}}{\\Delta s_2^2}
-                + \\omega_{i, j}
-            \\right).
-        \\end{align*}
-
-    for :math:`(i, j) \\in G - \\partial G`. The Jacobi method was used here
-    because we found that the tensorized Jacobi method was faster than
-    Gauss-Seidel. We then directly enforced the boundary point values defined
-    in :math:`\\text{BC1}` through :math:`\\text{BC3}`. The right boundary
-    points are calculated by using the left-weighted second-order approximation
-    of :math:`\\partial \\psi / \\partial s_1 \\approx 0`:
-
-    .. math::
-        \\begin{align*}
-            \\frac{3 \\psi_{i, j} - 4 \\psi_{i - 1, j} + \\psi_{i - 2, j}}
-            {2 \\Delta s_1} \\approx 0.
-        \\end{align*}
-
-    Next, lets calculate the velocity field using the stream function:
+    out the boundary points since they are determined by the fluid points.
+    Here, for computational simplicity, we will keep the boundary points in the
+    state. Let :math:`x` be a state satisfying the boundary conditions. Please
+    see ``gen_ic()`` for an example on how to generate such a state. Given a
+    state :math:`x`, we can generate the velocity field using second-order
+    finite-difference approximations of the derivatives. In particular, for
+    :math:`(i, j) \\in G - \\partial G`, we can calculate the velocity field
+    using
 
     .. math::
         \\begin{align*}
@@ -265,10 +199,19 @@ class Cylinder(DiscreteSystem):
             \\Delta s_1}.
         \\end{align*}
 
-    for :math:`(i, j) \\in G - \\partial G`. The velocity field on the boundary
-    points is set by using :math:`\\text{BC1}` through :math:`\\text{BC5}`. The
-    right boundary points are calculated using a left-weighted second-order
-    approximation for :math:`\\partial \\psi / \\partial s_1`. We can now
+    The velocity field on the top, left, and bottom boundary points is set by
+    using :math:`\\text{BC1}` through :math:`\\text{BC3}`. The cylinder
+    boundary points are defined by :math:`\\text{BC5}`. The right boundary
+    points of :math:`u_{2, i, j}` are calculated using the left-weighted
+    second-order approximation
+
+    .. math::
+        \\begin{align*}
+            u_{2, i, j} = - \\frac{3 \\psi_{i, j} - 4 \\psi_{i - 1, j}
+            + \\psi_{i - 2, j}}{2 \\Delta s_1}.
+        \\end{align*}
+
+    Next, lets calculate the updated flow points of vorticity. We can now
     calculate the update of the vorticity field :math:`\\omega_{i, j}` on
     :math:`G - \\partial G`. Here, we use Euler's method to update in time, we
     use upwind differencing to calculate the advection term, and we use
@@ -312,10 +255,112 @@ class Cylinder(DiscreteSystem):
             + \\omega_{i, j - 1}}{\\Delta s_2^2}.
         \\end{align*}
 
+    Given a state :math:`x` we generate the vorticity :math:`\\omega_{i, j}`
+    on the boundaries by (1) setting the left, top, and bottom boundary
+    conditions to zero and (2) determining the right boundary by using
+    :math:`\\text{BC4a}`:
+
+    .. math::
+        \\begin{align*}
+            U_\\infty \\partial \\omega / \\partial s_1 \\approx
+            \\nu (\\nabla_s \\cdot \\nabla_s) \\omega
+        \\end{align*}
+
+    .. math::
+        \\begin{align*}
+            U_\\infty \\frac{
+                3 \\omega_{i,j} - 4 \\omega_{i - 1,j} + \\omega_{i - 2,j}
+            }{2 \\Delta s_1}
+            &\\approx \\nu
+            \\frac{2 \\omega_{i, j} - 5 \\omega_{i - 1, j}
+            + 4 \\omega_{i - 2, j} - \\omega_{i - 3, j}}{\\Delta s_1^3} \\\\
+            & \\qquad + \\: \\nu \\frac{\\omega_{i, j + 1} - 2 \\omega_{i, j}
+            + \\omega_{i, j - 1}}{\\Delta s_2^2}
+        \\end{align*}
+
+    .. math::
+        \\begin{align*}
+            \\omega_{i,j}
+            &\\approx \\frac{U_\\infty \\left(\\frac{4 \\omega_{i-1, j}
+            - \\omega_{i-2, j}}{2 \\Delta s_1}\\right)
+            + \\nu \\left( \\frac{-5 \\omega_{i-1, j} + 4 \\omega_{i-2, j}
+            - \\omega_{i-3,j}}{\\Delta s_1^3} + \\frac{\\omega_{i, j+1}
+            + \\omega_{i, j-1}}{\\Delta s_2^2}\\right)}{
+            \\frac{3 U_\\infty}{2 \\Delta s_1} - \\frac{2 \\nu}{\\Delta s_1^3}
+            + \\frac{2 \\nu}{\\Delta s_2^2}
+            },
+        \\end{align*}
+
+    where :math:`i = N_1` and :math:`j \\in [2 : 2 N_2]`. We now have the
+    tensor :math:`\\omega_{i, j}` everywhere but the cylinder surface. From
+    this, we solve the non-boundary points of :math:`\\psi_{i, j}` by solving
+    the Poisson equation. This was done using the Jacobi method defined by
+
+    .. math::
+        \\begin{align*}
+            \\psi_{i, j}^{(k+1)} = \\frac{1}{2 \\left(
+                \\frac{1}{\\Delta s_1^2} + \\frac{1}{\\Delta s_2^2}
+            \\right)} \\left(
+                \\frac{\\psi_{i + 1, j}^{(k)}
+                + \\psi_{i - 1}^{(k)}}{\\Delta s_1^2}
+                + \\frac{\\psi_{i, j + 1}^{(k)}
+                + \\psi_{i, j - 1}^{(k)}}{\\Delta s_2^2}
+                + \\omega_{i, j}
+            \\right).
+        \\end{align*}
+
+    for :math:`(i, j) \\in G - \\partial G`. The Jacobi method was used here
+    because we found that the tensorized Jacobi method was faster than
+    Gauss-Seidel. We then directly enforced the boundary point values defined
+    in :math:`\\text{BC1}` through :math:`\\text{BC3}`. The right boundary
+    points are calculated by using the left-weighted second-order approximation
+    of :math:`\\partial \\psi / \\partial s_1 \\approx 0`:
+
+    .. math::
+        \\begin{align*}
+            \\frac{3 \\psi_{i, j} - 4 \\psi_{i - 1, j} + \\psi_{i - 2, j}}
+            {2 \\Delta s_1} \\approx 0.
+        \\end{align*}
+
+    Finally, we calculate the values of :math:`\\omega` on the boundary of the
+    cylinder. Let :math:`(i, j)` be a corner point on the cylinder surface
+    with :math:`(i + 1, j)` and :math:`(i - 1, j)` be two fluid points. Using
+    the fact that :math:`\\nabla \\psi = 0` on the  cylinder surface, we
+    make following second-order approximations:
+
+    .. math::
+        \\begin{align*}
+            \\psi_{i + 1, j} &= \\psi_{i, j} + 0
+            + \\frac{\\Delta s_1^2}{2}
+            \\frac{\\partial^2 \\psi}{\\partial s_1^2} \\\\
+            \\psi_{i, j + 1} &= \\psi_{i, j} + 0
+            + \\frac{\\Delta s_2^2}{2}
+            \\frac{\\partial^2 \\psi}{\\partial s_2^2}.
+        \\end{align*}
+
+    .. math::
+        \\begin{align*}
+            \\omega_{i, j} = - 2 \\left(\\frac{\\psi_{i + 1, j}}{\\Delta s_1^2}
+            + \\frac{\\psi_{i, j + 1}}{\\Delta s_2^2}.
+            \\right)
+        \\end{align*}
+
+    If we let :math:`\\psi_{i, j} = 0` inside the fluid surface, then one will
+    see, after looking at each possible boundary point combination of the
+    cylinder, that the values of :math:`\\omega_{i, j}` are given by
+
+    .. math::
+        \\begin{align*}
+            \\omega_{i, j} = - 2 \\left(\\frac{\\psi_{i + 1, j}
+            + \\psi_{i + 1, j}}{\\Delta s_1^2}
+            + \\frac{\\psi_{i, j + 1} + \\psi_{1, j - 1}}{\\Delta s_2^2}.
+            \\right)
+        \\end{align*}
+
     This determines all values of the next state :math:`\\Phi_{\\Delta t}(x)`.
 
-    Finally, this class' initialization method enforces two conditions: First,
-    that both grid spacings satisfy the condition for good diffusion modeling:
+    Finally, this class enforces two conditions: First, the grid spacings
+    must satisfy a condition for good diffusion modeling:
 
     .. math::
         \\begin{align*}
@@ -324,7 +369,7 @@ class Cylinder(DiscreteSystem):
             Re_{\\Delta s_2} = \\frac{U_\\infty \\Delta s_2}{\\nu} < 10.
         \\end{align*}
 
-    Second, the time step satisfies the Courant-Friedrichs-Lewy condition:
+    Second, the time step must satisfy the Courant-Friedrichs-Lewy condition:
 
     .. math::
         \\begin{align*}
@@ -340,6 +385,10 @@ class Cylinder(DiscreteSystem):
     |   None
 
     | **Attributes**
+    |   ``L_1`` (``float``): the value of the parameter :math:`L_1`
+    |   ``L_2`` (``float``): the value of the parameter :math:`L_2`
+    |   ``N_1`` (``int``): the value of the parameter :math:`N_1`
+    |   ``N_2`` (``int``): the value of the parameter :math:`N_2`
     |   ``m`` (``int``): the number of grid points in the :math:`s_2`-direction
     |   ``n`` (``int``): the number of grid points in the :math:`s_1`-direction
     |   ``nu`` (``float``): the value of the parameter :math:`\\nu`
@@ -376,8 +425,10 @@ class Cylinder(DiscreteSystem):
     |   [4] 1999 - Turek - Efficient Solvers for Incompressible Flow Problems
             An Algorithmic and Computational Approach
     |   [5] 2000 - Gresho - Incompressible Flow and the Finite Element Method
-    |   [6] 2016 - John - Finite Element Methods for Incompressible Flow
+    |   [6] 2011 - Yew - Numerical Differentiation Finite Differences
+    |   [7] 2016 - John - Finite Element Methods for Incompressible Flow
             Problems
+    |   [8] 2025 - Nosenchuck - Lectures in MAE 423 Heat Transfer
     """
 
     @property
