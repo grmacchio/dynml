@@ -9,7 +9,7 @@ wake.
 from typing import Tuple
 from math import sqrt
 # import external python-package code
-from torch import inf, max, no_grad, rand, stack, Tensor, where, zeros
+from torch import inf, max, no_grad, stack, Tensor, where, zeros
 from torch.nn import Parameter
 # import internal python-package code
 from dynml.dyn.discrete.system import DiscreteSystem
@@ -26,7 +26,7 @@ class Cylinder(DiscreteSystem):
     This class represents a dynamical system describing a 2D cylinder wake. In
     particular, this model is a finite-difference model of the incompressible
     Navier-Stokes equations on a square domain.
-    
+
     Let :math:`\\mathcal{C} \\subseteq [0, L_1] \\times [0, 2 L_2]` be a closed
     ball of radius :math:`R` positioned at :math:`s_c = (s_{c,1}, L_2)`. The
     spacial domain is then
@@ -41,7 +41,7 @@ class Cylinder(DiscreteSystem):
             \\nabla_s) u + g \\\\
             \\nabla_s \\cdot u &= 0.
         \\end{align*}
-    
+
     There are five boundary conditions. The first condition enforces the
     velocity to be :math:`(U_\\infty, 0)` at the inlet with
     :math:`\\partial u_2 / \\partial s_1 = 0`. As we will see later, the
@@ -59,31 +59,31 @@ class Cylinder(DiscreteSystem):
 
     .. math::
         \\begin{align*}
-            &(\\text{BC1a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC1a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 2 L_2], \\:
             s_1 = 0 \\implies u = (U_\\infty, 0) \\\\
-            &(\\text{BC1b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC1b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 2 L_2], \\:
             s_1 = 0  \\implies \\partial u_2 / \\partial s_1 = 0 \\\\
-            &(\\text{BC2a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC2a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, L_1], \\:
             s_2 = 1 \\implies u = (U_\\infty, 0) \\\\
-            &(\\text{BC2b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC2b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, L_1], \\:
             s_2 = 1 \\implies \\partial u_1 / \\partial s_2 = 0 \\\\
-            &(\\text{BC3a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC3a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, L_1], \\:
             s_2 = 0 \\implies u = (U_\\infty, 0) \\\\
-            &(\\text{BC3b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC3b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, L_1], \\:
             s_2 = 0 \\implies \\partial u_1 / \\partial s_2 = 0 \\\\
-            &(\\text{BC4a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC4a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 2 L_2], \\:
             s_1 = 1 \\implies u \\approx (U_\\infty, 0) \\\\
-            &(\\text{BC4b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC4b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 2 L_2], \\:
             \\implies \\partial u / \\partial t \\approx 0 \\\\
-            &(\\text{BC5a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC5a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall x \\in \\partial \\mathcal{C}, \\: u(t, s) = \\: &0.
         \\end{align*}
 
@@ -146,32 +146,32 @@ class Cylinder(DiscreteSystem):
 
     .. math::
         \\begin{align*}
-            &(\\text{BC1a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC1a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 1], \\:
             s_1 = 0 \\implies \\psi = U_\\infty (s_2 - 1/2) \\\\
-            &(\\text{BC1b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC1b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 1], \\:
             s_1 = 0 \\implies \\omega = 0 \\\\
-            &(\\text{BC2a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC2a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, 1], \\:
             s_2 = 1 \\implies \\psi = U_\\infty / 2 \\\\
-            &(\\text{BC2b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC2b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, 1], \\:
             s_2 = 1 \\implies \\omega = 0 \\\\
-            &(\\text{BC3a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC3a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, 1], \\:
             s_2 = 0 \\implies \\psi = -U_\\infty / 2 \\\\
-            &(\\text{BC3b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC3b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_1 \\in [0, 1], \\:
             s_2 = 0 \\implies \\omega = 0 \\\\
-            &(\\text{BC4a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC4a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 1], \\:
             s_1 = 1 \\implies U_\\infty \\partial w / \\partial s_1 \\approx
             \\nu (\\nabla_s \\cdot \\nabla_s) \\omega \\\\
-            &(\\text{BC4b}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC4b}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s_2 \\in [0, 1], \\:
             s_1 = 1 \\implies \\partial \\psi / \\partial s_1 \\approx 0 \\\\
-            &(\\text{BC5a}) \\qquad \\forall t \in [0, \\infty), \\:
+            &(\\text{BC5a}) \\qquad \\forall t \\in [0, \\infty), \\:
             \\forall s \\in \\partial \\mathcal{C},
             \\: (\\psi = 0) \\: \\land \\: (\\nabla_s \\psi = 0)
         \\end{align*}
@@ -186,8 +186,8 @@ class Cylinder(DiscreteSystem):
     Here, for computational simplicity, we will keep the keep the cylinder
     points in the state. Let :math:`x` be a state satisfying the boundary
     conditions. Please see ``gen_ic()`` for an example on how to generate
-    such a state. 
-    
+    such a state.
+
     Given a state :math:`x` we generate the vorticity
     :math:`\\omega_{i, j}` by (1) setting the left, top, and bottom boundary
     conditions to zero and (2) determining the right boundary by using
@@ -198,7 +198,7 @@ class Cylinder(DiscreteSystem):
             U_\\infty \\partial \\omega / \\partial s_1 \\approx
             \\nu (\\nabla_s \\cdot \\nabla_s) \\omega
         \\end{align*}
-    
+
     .. math::
         \\begin{align*}
             U_\\infty \\frac{
@@ -226,8 +226,8 @@ class Cylinder(DiscreteSystem):
 
     where :math:`i = N_1` and :math:`j \\in [2 : 2 N_2]`. We now have the
     tensor :math:`\\omega_{i, j}`. From this, we solve the non-boundary points
-    of :math:`\\psi_{i, j}` by solving the Poisson equation. This was done using
-    the Jacobi method defined by
+    of :math:`\\psi_{i, j}` by solving the Poisson equation. This was done
+    using the Jacobi method defined by
 
     .. math::
         \\begin{align*}
@@ -241,7 +241,7 @@ class Cylinder(DiscreteSystem):
                 + \\omega_{i, j}
             \\right).
         \\end{align*}
-    
+
     for :math:`(i, j) \\in G - \\partial G`. The Jacobi method was used here
     because we found that the tensorized Jacobi method was faster than
     Gauss-Seidel. We then directly enforced the boundary point values defined
@@ -332,7 +332,7 @@ class Cylinder(DiscreteSystem):
         \\end{align*}
 
     where for cylinder flow we know :math:`U_{\\max} = 2 U_\\infty`.
-            
+
     | **Abstract Attributes**
     |   None
 
@@ -443,8 +443,7 @@ class Cylinder(DiscreteSystem):
         omega = self._omega_bd(psi, omega)
         return stack((psi, omega), dim=-1)
 
-
-    def __init__(self, L_1: float = 2.0, L_2: float = 0.25,
+    def __init__(self, L_1: float = 2.0, L_2: float = 0.25,  # noqa: C901
                  N_1: int = 1200, N_2: int = 150, nu: float = 1.57e-5,
                  R: float = 0.05, Re: float = 200.0,
                  h_rf: float = 2.0/5.0, dt_rf: float = 0.5,
@@ -506,7 +505,9 @@ class Cylinder(DiscreteSystem):
         h = 10 * self.nu / self.U_inf * h_rf
         if (self.ds2 > h) or (self.ds1 > h):
             raise ValueError('Grid space must be smaller than 10 * self.nu / '
-                             + 'self.U_inf * h_rf')
+                             + f'self.U_inf * h_rf = {h:.4f}. Currently, '
+                             + f'self.ds2 = {self.ds2:.4f} and '
+                             + f'self.ds1 = {self.ds1:.4f}.')
         self.dt = (min(self.ds2, self.ds1) / (2 * self.U_inf)) * dt_rf
         self.ep = ep
         self.s_c = (s_c1, L_2)
@@ -594,11 +595,11 @@ class Cylinder(DiscreteSystem):
                                                             + term3)
             psi_curr = where(self.mask == 0, psi_curr, 0.0)
             with no_grad():
-                error = max(abs(psi_curr - psi_prev))
+                error = max(abs(psi_curr - psi_prev)).item()
             psi_prev = psi_curr.clone()
         # return the stream function
         return psi_curr
-    
+
     def _psi_bd(self, psi: Tensor) -> Tensor:
         # set the right boundary condition
         psi_new = psi.clone()
@@ -606,7 +607,7 @@ class Cylinder(DiscreteSystem):
                                                   - psi[..., 1:self.m-1, -3])
         # return the stream function
         return psi_new
-    
+
     def _omega_bd(self, psi: Tensor, omega: Tensor) -> Tensor:
         # set the right boundary condition
         omega_new = omega.clone()
@@ -619,7 +620,7 @@ class Cylinder(DiscreteSystem):
         term2 = (self.nu * ((-5 * im1_j + 4 * im2_j - im3_j) / self.ds1**3
                             + (i_jp1 + i_jm1) / self.ds2**2))
         term3 = (3 * self.U_inf / (2 * self.ds1)
-                - 2 * self.nu / self.ds1**3 + 2 * self.nu / self.ds2**2)
+                 - 2 * self.nu / self.ds1**3 + 2 * self.nu / self.ds2**2)
         omega_new[..., 1:self.m-1, -1] = (term1 + term2) / term3
         # set the cylinder boundary condition
         for ij in self.bd:
@@ -629,8 +630,8 @@ class Cylinder(DiscreteSystem):
                      + psi[..., ij[0], ij[1] - 1]) / self.ds2**2
             omega_new[..., ij[0], ij[1]] = - 2 * (term1 + term2)
         return omega_new
-    
-    def _vel(self, psi: Tensor) -> Tensor:
+
+    def _vel(self, psi: Tensor) -> Tuple[Tensor, Tensor]:
         # compute the u1 velocity field
         u1 = zeros((self.m, self.n))
         u1[0, :] = self.U_inf
