@@ -324,7 +324,7 @@ class Cylinder(DiscreteSystem):
 
     Finally, we calculate the values of :math:`\\omega` on the boundary of the
     cylinder. Let :math:`(i, j)` be a corner point on the cylinder surface
-    with :math:`(i + 1, j)` and :math:`(i - 1, j)` be two fluid points. Using
+    with :math:`(i + 1, j)` and :math:`(i, j + 1)` be two fluid points. Using
     the fact that :math:`\\nabla \\psi = 0` on the  cylinder surface, we
     make following second-order approximations:
 
@@ -352,7 +352,7 @@ class Cylinder(DiscreteSystem):
     .. math::
         \\begin{align*}
             \\omega_{i, j} = - 2 \\left(\\frac{\\psi_{i + 1, j}
-            + \\psi_{i + 1, j}}{\\Delta s_1^2}
+            + \\psi_{i - 1, j}}{\\Delta s_1^2}
             + \\frac{\\psi_{i, j + 1} + \\psi_{1, j - 1}}{\\Delta s_2^2}.
             \\right)
         \\end{align*}
