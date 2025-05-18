@@ -359,8 +359,8 @@ class Cylinder(DiscreteSystem):
 
     This determines all values of the next state :math:`\\Phi_{\\Delta t}(x)`.
 
-    Finally, this class enforces two conditions: First, the grid spacings
-    must satisfy a condition for good diffusion modeling:
+    To ensure stable simulation this class raises a warning if the grid
+    spacing does not satisfy a condition for good diffusion modeling:
 
     .. math::
         \\begin{align*}
@@ -369,11 +369,13 @@ class Cylinder(DiscreteSystem):
             Re_{\\Delta s_2} = \\frac{U_\\infty \\Delta s_2}{\\nu} < 10.
         \\end{align*}
 
-    Second, the time step must satisfy the Courant-Friedrichs-Lewy condition:
+    The time step is chosen such that the Courant-Friedrichs-Lewy condition is
+    satisfied:
 
     .. math::
         \\begin{align*}
-            \\Delta t < \\frac{\\min(\\Delta s_1, \\Delta s_2)}{U_{\\max}}.
+            \\Delta t = \\frac{\\min(\\Delta s_1, \\Delta s_2)}{U_{\\max}} 0.5
+            < \\frac{\\min(\\Delta s_1, \\Delta s_2)}{U_{\\max}},
         \\end{align*}
 
     where for cylinder flow we know :math:`U_{\\max} = 2 U_\\infty`.
@@ -497,8 +499,8 @@ class Cylinder(DiscreteSystem):
     def __init__(self, L_1: float = 2.0, L_2: float = 0.25,  # noqa: C901
                  N_1: int = 1200, N_2: int = 150, nu: float = 1.57e-5,
                  R: float = 0.05, Re: float = 200.0,
-                 h_rf: float = 2.0/5.0, dt_rf: float = 0.5,
-                 ep: float = 1e-7, s_c1: float = 0.2) -> None:
+                 ep: float = 1e-7, s_c1: float = 0.2,
+                 num_iter_max: int = 10000) -> None:
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
@@ -518,14 +520,13 @@ class Cylinder(DiscreteSystem):
                 default value of ``0.05``
         |   ``Re`` (``float``): the value of the parameter :math:`Re` with
                 default value of ``200.0``
-        |   ``h_rf`` (``float``): the value of the parameter
-                :math:`h_{\\text{rf}}` with default value of ``2.0/5.0``
-        |   ``dt_rf`` (``float``): the value of the parameter
                 :math:`dt_{\\text{rf}}` with default value of ``0.5``
         |   ``ep`` (``float``): the value of the parameter :math:`\\epsilon`
                 with default value of ``1e-7``
         |   ``s_c1`` (``float``): the value of the parameter :math:`s_{c1}`
                 with default value of ``0.2``
+        |   ``num_iter_max`` (``int``): the maximum number of iterations
+                for the Jacobi method with default value of ``10000``
 
         | **Returns**
         |   None
@@ -553,14 +554,15 @@ class Cylinder(DiscreteSystem):
         self.U_inf = Re * nu / D
         self.ds2 = 2 * L_2 / (2 * N_2)
         self.ds1 = L_1 / (N_1 - 1)
-        h = 10 * self.nu / self.U_inf * h_rf
+        h = 10 * self.nu / self.U_inf
         if (self.ds2 > h) or (self.ds1 > h):
-            raise ValueError('Grid space must be smaller than 10 * self.nu / '
-                             + f'self.U_inf * h_rf = {h:.4f}. Currently, '
-                             + f'self.ds2 = {self.ds2:.4f} and '
-                             + f'self.ds1 = {self.ds1:.4f}.')
-        self.dt = (min(self.ds2, self.ds1) / (2 * self.U_inf)) * dt_rf
+            raise Warning('Grid spacing should be smaller than 10 * self.nu / '
+                          + f'self.U_inf = {h:.4f}. Currently, '
+                          + f'self.ds2 = {self.ds2:.4f} and '
+                          + f'self.ds1 = {self.ds1:.4f}.')
+        self.dt = (min(self.ds2, self.ds1) / (2 * self.U_inf)) * 0.5
         self.ep = ep
+        self.num_iter_max = num_iter_max
         self.s_c = (s_c1, L_2)
         # set the mask
         self.mask = zeros((self.m, self.n))
@@ -635,7 +637,8 @@ class Cylinder(DiscreteSystem):
         error = inf
         # do Jacobi iteration
         mult = 1 / (2 * (1 / self.ds1**2 + 1 / self.ds2**2))
-        while error > self.ep:
+        iter_num = 0
+        while (error > self.ep) and (iter_num < self.num_iter_max):
             term1 = (psi_prev[..., 1:self.m-1, 2:self.n]
                      + psi_prev[..., 1:self.m-1, 0:self.n-2]) / self.ds1**2
             term2 = (psi_prev[..., 2:self.m, 1:self.n-1]
@@ -648,6 +651,7 @@ class Cylinder(DiscreteSystem):
             with no_grad():
                 error = max(abs(psi_curr - psi_prev)).item()
             psi_prev = psi_curr.clone()
+            iter_num += 1
         # return the stream function
         return psi_curr
 
