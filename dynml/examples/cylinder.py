@@ -9,7 +9,7 @@ wake.
 from typing import Tuple
 from math import sqrt
 # import external python-package code
-from torch import inf, max, no_grad, stack, Tensor, where, zeros
+from torch import inf, max, no_grad, rand, stack, Tensor, where, zeros
 from torch.nn import Parameter
 # import internal python-package code
 from dynml.dyn.discrete.system import DiscreteSystem
@@ -415,7 +415,9 @@ class Cylinder(DiscreteSystem):
     | **Methods**
     |   ``__init__()``: initialize the superclass and model parameters
     |   ``map()``: return :math:`\\Phi_{\\Delta t}(x)`
-    |   ``gen_ic()``: return a random initial condition
+    |   ``gen_rand_ic()``: return a random initial condition.
+    |   ``gen_inviscid_ic()``: return the inviscid initial condition with
+            boundary vorticity
 
     | **References**
     |   [1] 1986 - Girault - Finite Element Methods for Navier-Stokes
@@ -591,7 +593,7 @@ class Cylinder(DiscreteSystem):
         # set up dummy parameter
         self._dummy = Parameter(zeros((1,)), requires_grad=False)
 
-    def gen_ic(self) -> Tensor:
+    def gen_rand_ic(self) -> Tensor:
         """Return a random initial condition.
 
         This method returns a random initial condition. This is done by
@@ -621,7 +623,47 @@ class Cylinder(DiscreteSystem):
                 else:
                     psi[i, j] = 0.0
         # initialize a random vorticity field
-        omega = zeros((self.m, self.n))  # 2 * rand((self.m, self.n)) - 1
+        omega = 2 * rand((self.m, self.n)) - 1
+        # use the omega fluid points to set psi fluid points
+        psi = self._poisson(psi, omega)
+        # enforce psi right boundary condition
+        psi = self._psi_bd(psi)
+        # enforce the cylinder boundary condition for vorticity
+        omega = self._omega_bd(psi, omega)
+        return stack((psi, omega), dim=-1)
+
+    def gen_inviscid_ic(self) -> Tensor:
+        """Return the inviscid initial condition with boundary vorticity.
+
+        This method returns the inviscid initial condition with boundary
+        vorticity. This is done by generating a set of zeros for the vorticity
+        field and then solving the Poisson equation to get the stream function.
+        After the boundary vorticity is added the initial condition is
+        returned.
+
+        | **Args**
+        |   None
+
+        | **Returns**
+        |   ``Tensor``: the initial condition with shape ``self.dims_state``
+
+        | **Raises**
+        |   None
+
+        | **References**
+        |   None
+        """
+        # define the initial guess for the stream function
+        psi = zeros((self.m, self.n))
+        for i in range(self.m):
+            for j in range(self.n):
+                if sqrt((i * self.ds2 - self.s_c[1])**2
+                        + (j * self.ds1 - self.s_c[0])**2) > self.R:
+                    psi[i, j] = (- self.U_inf * (i * self.ds2 - self.s_c[1]))
+                else:
+                    psi[i, j] = 0.0
+        # initialize a random vorticity field
+        omega = zeros((self.m, self.n))
         # use the omega fluid points to set psi fluid points
         psi = self._poisson(psi, omega)
         # enforce psi right boundary condition
@@ -638,7 +680,10 @@ class Cylinder(DiscreteSystem):
         # do Jacobi iteration
         mult = 1 / (2 * (1 / self.ds1**2 + 1 / self.ds2**2))
         iter_num = 0
-        while (error > self.ep) and (iter_num < self.num_iter_max):
+        while (error > self.ep):
+            if iter_num > self.num_iter_max:
+                raise ValueError('Jacobi iteration reached maximum number of '
+                                 'iterations.')
             term1 = (psi_prev[..., 1:self.m-1, 2:self.n]
                      + psi_prev[..., 1:self.m-1, 0:self.n-2]) / self.ds1**2
             term2 = (psi_prev[..., 2:self.m, 1:self.n-1]
