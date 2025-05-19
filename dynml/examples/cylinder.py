@@ -359,8 +359,8 @@ class Cylinder(DiscreteSystem):
 
     This determines all values of the next state :math:`\\Phi_{\\Delta t}(x)`.
 
-    To ensure stable simulation this class raises a warning if the grid
-    spacing does not satisfy a condition for good diffusion modeling:
+    To ensure stable simulation we recommend a grid spacing that satisfies a
+    condition for good diffusion modeling:
 
     .. math::
         \\begin{align*}
@@ -558,10 +558,10 @@ class Cylinder(DiscreteSystem):
         self.ds1 = L_1 / (N_1 - 1)
         h = 10 * self.nu / self.U_inf
         if (self.ds2 > h) or (self.ds1 > h):
-            raise Warning('Grid spacing should be smaller than 10 * self.nu / '
-                          + f'self.U_inf = {h:.4f}. Currently, '
-                          + f'self.ds2 = {self.ds2:.4f} and '
-                          + f'self.ds1 = {self.ds1:.4f}.')
+            print('Grid spacing should be smaller than 10 * self.nu / '
+                  + f'self.U_inf = {h:.4f}. Currently, '
+                  + f'self.ds2 = {self.ds2:.4f} and '
+                  + f'self.ds1 = {self.ds1:.4f}.')
         self.dt = (min(self.ds2, self.ds1) / (2 * self.U_inf)) * 0.5
         self.ep = ep
         self.num_iter_max = num_iter_max
