@@ -6,7 +6,7 @@ manifold.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import rand, randn, tensor, Tensor, zeros_like
 from torch.nn import Parameter
@@ -54,7 +54,7 @@ class Parabola(SemiLinearFirstOrderSystem):
     |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
     |       value :math:`100.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``int``): the state dimensions
 
     | **Abstract Methods**
     |   None
@@ -81,8 +81,8 @@ class Parabola(SemiLinearFirstOrderSystem):
         return self._A
 
     @property
-    def num_states(self) -> int:
-        return 2
+    def dims_state(self) -> Tuple[int, ...]:
+        return (2,)
 
     def nonlinear(self, x: Tensor) -> Tensor:
         """Return :math:`F(x)`.

@@ -6,6 +6,7 @@ This module contains all code related to the Burgers' dynamical system.
 
 # import built-in python-package code
 from math import pi as math_pi
+from typing import Tuple
 # import external python-package code
 from torch import arange, diag, pi, rand, randn, Tensor, zeros
 from torch.fft import irfft, rfft
@@ -117,7 +118,7 @@ class Burgers(SemiLinearFirstOrderSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``C`` for complex numbers
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with a default
             value of ``512``
@@ -139,7 +140,7 @@ class Burgers(SemiLinearFirstOrderSystem):
     |   ``state_to_phys()``: return the physical state given the state
     |   ``phys_to_state()``: return the state given the physical state
     |   ``gen_ic()``: Return an I.C. where
-        :math:`\\|\\vec{x}_{\\mathbb{R}}\\|_2 \\sim U[[0, 1)]`
+            :math:`\\|\\vec{x}_{\\mathbb{R}}\\|_2 \\sim U[[0, 1)]`
     |   ``rhs()``: return :math:`f(\\vec{x})`
 
     | **References**
@@ -152,8 +153,8 @@ class Burgers(SemiLinearFirstOrderSystem):
         return 'C'
 
     @property
-    def num_states(self):
-        return self.K + 1
+    def dims_state(self) -> Tuple[int, ...]:
+        return (self.K + 1,)
 
     @property
     def A(self) -> Tensor:
@@ -271,8 +272,8 @@ class Burgers(SemiLinearFirstOrderSystem):
         an initial condition is sampled in the following way: First,
         :math:`\\vec{u} \\sim U[\\mathcal{S}^{2n-2}]`. Second,
         :math:`r\\sim U[[0, 1)]`. Finally, the sample
-        :math:`\\vec{x}_{\\mathbb{R}} = ru` is returned shaped into the state
-        :math:`\\vec{x}`.
+        :math:`\\vec{x}_{\\mathbb{R}} = ru` is reshaped and returned as the
+        state :math:`\\vec{x}`.
 
         | **Args**
         |   None

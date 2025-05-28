@@ -5,7 +5,7 @@ This module contains all code related to a system with a linear slow manifold.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import exp, rand, randn, tensor, Tensor, zeros_like
 from torch.nn import Parameter
@@ -111,7 +111,7 @@ class Line(SemiLinearFirstOrderSystem):
     |   ``C`` (``float``): the parameter :math:`C` with default value
     |       :math:`300.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``int``): the state dimensions
 
     | **Abstract Methods**
     |   None
@@ -140,8 +140,8 @@ class Line(SemiLinearFirstOrderSystem):
         return self._A
 
     @property
-    def num_states(self) -> int:
-        return 2
+    def dims_state(self) -> Tuple[int, ...]:
+        return (2,)
 
     def nonlinear(self, x: Tensor) -> Tensor:
         """Return :math:`F(x)`.
@@ -196,7 +196,6 @@ class Line(SemiLinearFirstOrderSystem):
         self.C = C
         self._A = Parameter(tensor([[-lambda1, 0.0], [0.0, -lambda2]]),
                             requires_grad=False)
-        self._num_states = 2
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|x\\|_2 \\sim U[[0, 1)]`.

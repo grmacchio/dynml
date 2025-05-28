@@ -6,7 +6,7 @@ system.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import arange, cat, diag, pi, rand, randn, Tensor, zeros
 from torch.fft import irfft, rfft
@@ -122,12 +122,12 @@ class KSE(SemiLinearFirstOrderSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``C`` for complex numbers
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value ``32``
     |   ``L`` (``float``): the length of the domain :math:`L` with a default
             value ``11.0``
     |   ``N`` (``int``): the number of collocation points :math:`2K + 1`
-    |   ``num_states`` (``int``): the number of states
     |   ``A`` (``Tensor``): the matrix :math:`A`
 
     | **Abstract Methods**
@@ -155,8 +155,8 @@ class KSE(SemiLinearFirstOrderSystem):
         return 'C'
 
     @property
-    def num_states(self):
-        return self.K + 1
+    def dims_state(self) -> Tuple[int, ...]:
+        return (self.K + 1,)
 
     def __init__(self, K: int = 32, L: float = 11.0):
         """Initialize the superclass and model parameters.
@@ -271,8 +271,8 @@ class KSE(SemiLinearFirstOrderSystem):
         an initial condition is sampled in the following way: First,
         :math:`\\vec{u} \\sim U[\\mathcal{S}^{2n-2}]`. Second,
         :math:`r\\sim U[[0, 1)]`. Finally, the sample
-        :math:`\\vec{x}_{\\mathbb{R}} = ru` is returned shaped into the state
-        :math:`\\vec{x}`.
+        :math:`\\vec{x}_{\\mathbb{R}} = ru` is returned amd shaped into the
+        state :math:`\\vec{x}`.
 
         | **Args**
         |   None

@@ -6,7 +6,7 @@ system.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import arange, cat, conj, diag, pi, rand, randn
 from torch import Tensor, zeros
@@ -102,7 +102,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``C`` for complex numbers
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value of ``256``
@@ -147,8 +147,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         return self._A
 
     @property
-    def num_states(self) -> int:
-        return 2 * self.K + 1
+    def dims_state(self) -> Tuple[int, ...]:
+        return (2 * self.K + 1,)
 
     def __init__(self, K: int = 256, L: float = 10.0,
                  R: float = 1.0, nu: float = 1.0, mu: float = 2.0) -> None:

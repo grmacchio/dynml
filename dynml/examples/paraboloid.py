@@ -6,7 +6,7 @@ manifold.
 
 
 # import built-in python-package code
-# None
+from typing import Tuple
 # import external python-package code
 from torch import rand, randn, sqrt, tensor, Tensor, zeros_like
 from torch.linalg import norm
@@ -64,7 +64,7 @@ class Paraboloid(SemiLinearFirstOrderSystem):
 
     | **Attributes**
     |   ``field`` (``str``): ``R`` for real numbers
-    |   ``num_states`` (``int``): the number of states
+    |   ``dims_state`` (``int``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with
             default value of ``0.1``
@@ -104,8 +104,8 @@ class Paraboloid(SemiLinearFirstOrderSystem):
         return 'R'
 
     @property
-    def num_states(self) -> int:
-        return 3
+    def dims_state(self) -> Tuple[int, ...]:
+        return (3,)
 
     @property
     def A(self) -> Tensor:
