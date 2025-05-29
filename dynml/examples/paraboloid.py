@@ -253,7 +253,7 @@ class Paraboloid(SemiLinearFirstOrderSystem):
         |   None
         """
         # return the initial condition where ||x||_2 ~ U[[0, 1)]
-        gaussian = randn((self.num_states,),
+        gaussian = randn((len(self.dims_state),),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
         radius = rand((1,), device=next(self.parameters()).device.type)
