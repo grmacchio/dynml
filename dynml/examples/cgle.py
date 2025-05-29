@@ -32,14 +32,14 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\frac{\\partial u}{\\partial t}
-        = \\left(R + (1 + i \\nu) \\frac{\\partial^2}{\\partial x^2}\\right)u
-        - (1 + i \\mu) \\left|u\\right|^2 u
+        = \\left(\\alpha + \\beta
+        \\frac{\\partial^2}{\\partial x^2}\\right)u
+        + \\gamma \\left|u\\right|^2 u
 
-    where :math:`u(t, x) \\in \\mathbb{C}`,
-    :math:`t, \\nu, \\mu \\in\\mathbb{R}`, and :math:`x \\in [0, L]`. In order
-    to obtain a first-order O.D.E. system, we orthogonally project this P.D.E.
-    onto the space of complex Fourier modes where solutions :math:`u` take the
-    form,
+    where :math:`u(t, x), \\alpha, \\beta, \\gamma \\in \\mathbb{C}`,
+    :math:`t \\in \\mathbb{R}`, and :math:`x \\in [0, L]`. In order to obtain a
+    first-order O.D.E. system, we orthogonally project this P.D.E. onto the
+    space of complex Fourier modes where solutions :math:`u` take the form,
 
     .. math::
         \\begin{align*}
@@ -55,9 +55,10 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\dot{U}_{k} &= \\left(R - (1 + i \\nu) \\left(\\frac{2\\pi k}{L}
-            \\right)^2\\right) U_k
-            + \\mathcal{F}_{k} \\left( - (1 + i \\mu) |u|^2 u \\right)
+            \\dot{U}_{k} &= \\left(\\alpha + \\beta
+            \\left(\\frac{2\\pi k}{L} \\right)^2\\right) U_k
+            + \\mathcal{F}_{k} \\left( \\gamma
+            |u|^2 u \\right)
         \\end{align*}
 
     for :math:`k \\in [-K : K]`. The nonlinear term is approximated using
@@ -67,11 +68,11 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\mathcal{F}_{k}\\left(- (1 + i \\mu) |u|^2 u\\right)
+            \\mathcal{F}_{k}\\left(\\gamma |u|^2 u\\right)
             \\approx
             \\mathcal{D}_{k}\\left[
                 \\left(
-                -(1 + i \\mu) \\cdot
+                \\gamma \\cdot
                 |\\mathcal{D}_{n}^{-1} \\left[
                     (U_{m})_{m\\:}
                 \\right]|^2
@@ -107,14 +108,15 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value of ``256``
     |   ``N`` (``int``): the number of collocation points :math:`N = 2K + 1`
+    |   ``alpha`` (``float``): the value of the parameter
+            :math:`\\alpha = \\alpha_r + i \\alpha_i` with default value
+            of ``1.0 + 0.0j``
     |   ``L`` (``float``): the value of the parameter :math:`L` with default
             value of ``10.0``
-    |   ``R`` (``float``): the value of the parameter :math:`R` with default
-            value of ``1.0``
-    |   ``nu`` (``float``): the value of the parameter :math:`\\nu` with a
-            default value of ``1.0``
-    |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with a
-            default value of ``2.0``
+    |   ``beta`` (``complex``): the value of the parameter
+            :math:`\\beta` with default value of ``1.0 + 1.0j``
+    |   ``gamma`` (``complex``): the value of the parameter
+            :math:`\\gamma` with default value of ``-1.0 - 2.0j``
 
     | **Abstract Methods**
     |   None
@@ -151,7 +153,9 @@ class CGLE(SemiLinearFirstOrderSystem):
         return (2 * self.K + 1,)
 
     def __init__(self, K: int = 256, L: float = 10.0,
-                 R: float = 1.0, nu: float = 1.0, mu: float = 2.0) -> None:
+                 alpha_r: float = 1.0, alpha_i: float = 0.0,
+                 beta_r: float = 1.0, beta_i: float = 1.0,
+                 gamma_r: float = -1.0, gamma_i: float = -2.0) -> None:
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
@@ -161,12 +165,18 @@ class CGLE(SemiLinearFirstOrderSystem):
                 default value of ``256``
         |   ``L`` (``float``): the length of the domain :math:`L` with a
                 default value of ``10.0``
-        |   ``R`` (``float``): the value of the parameter :math:`R` with a
-                default value of ``1.0``
-        |   ``nu`` (``float``): the value of the parameter :math:`\\nu` with a
-                default value of ``1.0``
-        |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with a
-                default value of ``2.0``
+        |   ``alpha_r`` (``float``): the real part of the parameter
+                :math:`\\alpha` with a default value of ``1.0``
+        |   ``alpha_i`` (``float``): the imaginary part of the parameter
+                :math:`\\alpha` with a default value of ``0.0``
+        |   ``beta_r`` (``float``): the real part of the parameter
+                :math:`\\beta` with a default value of ``1.0``
+        |   ``beta_i`` (``float``): the imaginary part of the parameter
+                :math:`\\beta` with a default value of ``1.0``
+        |   ``gamma_r`` (``float``): the real part of the parameter
+                :math:`\\gamma` with a default value of ``-1.0``
+        |   ``gamma_i`` (``float``): the imaginary part of the parameter
+                :math:`\\gamma` with a default value of ``-2.0``
 
         | **Returns**
         |   None
@@ -187,13 +197,14 @@ class CGLE(SemiLinearFirstOrderSystem):
         # initialize the model parameters
         self.K = K
         self.N = 2 * K + 1
+        self.alpha = alpha_r + 1j * alpha_i
         self.L = L
-        self.nu = nu
-        self.mu = mu
+        self.beta = beta_r + 1j * beta_i
+        self.gamma = gamma_r + 1j * gamma_i
         self._K_prime = 3 * K // 2
         self._N_prime = 2 * self._K_prime + 1
         k = cat((arange(0, K + 1), arange(-K, 0)))
-        self._A = Parameter(diag(R - (1 + 1j * self.nu)
+        self._A = Parameter(diag(self.alpha - self.beta
                                  * (2 * pi * k / self.L)**2),
                             requires_grad=False)
 
@@ -222,7 +233,7 @@ class CGLE(SemiLinearFirstOrderSystem):
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
         u = self._dealiased_ifft(x)
-        return self._dealiased_fft(- (1 + 1j * self.mu) * conj(u) * u * u)
+        return self._dealiased_fft(self.gamma * conj(u) * u * u)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
