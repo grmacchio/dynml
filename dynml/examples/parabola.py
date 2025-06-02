@@ -107,7 +107,7 @@ class Parabola(SemiLinearFirstOrderSystem):
         output[..., 1] = self.lambda2 * x[..., 0]**2
         return output
 
-    def __init__(self, lambda1: float = 1.0, lambda2: float = 100.0) -> None:
+    def __init__(self, lambda1: float = 1.0, lambda2: float = 10.0) -> None:
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
