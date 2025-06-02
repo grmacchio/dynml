@@ -165,8 +165,8 @@ class Line(SemiLinearFirstOrderSystem):
         output[..., 0] = self.C * x[..., 0] * x[..., 1]
         return output
 
-    def __init__(self, lambda1: float = 1.0, lambda2: float = 100.0,
-                 C: float = 300.0) -> None:
+    def __init__(self, lambda1: float = 1.0, lambda2: float = 10.0,
+                 C: float = 30.0) -> None:
         """Initialize the superclass and model parameters.
 
         This method initializes the superclass and model parameters.
