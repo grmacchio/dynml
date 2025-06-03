@@ -55,7 +55,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\dot{U}_{k} &= \\left(\\alpha + \\beta
+            \\dot{U}_{k} &= \\left(\\alpha - \\beta
             \\left(\\frac{2\\pi k}{L} \\right)^2\\right) U_k
             + \\mathcal{F}_{k} \\left( \\gamma
             |u|^2 u \\right)
@@ -246,7 +246,7 @@ class CGLE(SemiLinearFirstOrderSystem):
         |   [3] Peyret, Roger. Spectral methods for incompressible viscous
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
-        U = x[..., :2 * self.K + 1] + 1j * x[..., 2 * self.K + 1:]
+        U = x[..., :self.N] + 1j * x[..., self.N:]
         u = self._dealiased_ifft(U)
         U_dot = self._dealiased_fft(self.gamma * conj(u) * u * u)
         return cat((U_dot.real, U_dot.imag), dim=-1)
@@ -301,7 +301,7 @@ class CGLE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        U = x[..., :2 * self.K + 1] + 1j * x[..., 2 * self.K + 1:]
+        U = x[..., :self.N] + 1j * x[..., self.N:]
         return ifft(U, n=self.N, norm='forward')
 
     def phys_to_state(self, u: Tensor) -> Tensor:
@@ -326,14 +326,14 @@ class CGLE(SemiLinearFirstOrderSystem):
         U = fft(u, n=self.N, norm='forward')
         return cat((U.real, U.imag), dim=-1)
 
-    def _dealiased_ifft(self, x: Tensor) -> Tensor:
-        shape = x.shape[:-1] + (self._N_prime - (self.K + 1) - self.K,)
+    def _dealiased_ifft(self, U: Tensor) -> Tensor:
+        shape = U.shape[:-1] + (self._N_prime - (self.K + 1) - self.K,)
         device = next(self.parameters()).device.type
-        dtype = x.dtype
-        x_pad = cat((x[..., :self.K + 1],
+        dtype = U.dtype
+        U_pad = cat((U[..., :self.K + 1],
                      zeros(shape, dtype=dtype, device=device),
-                     x[..., -self.K:]), dim=-1)
-        return ifft(x_pad, n=self._N_prime, norm='forward')
+                     U[..., -self.K:]), dim=-1)
+        return ifft(U_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_fft(self, u: Tensor) -> Tensor:
         U_pad = fft(u, n=self._N_prime, norm='forward')
