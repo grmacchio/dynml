@@ -212,7 +212,7 @@ class KSE(SemiLinearFirstOrderSystem):
         """
         # represent the state in frequency space
         U = x[..., :self.K + 1]
-        U[1:] = U + 1j * x[..., self.K + 1:]
+        U[1:] = U[1:] + 1j * x[..., self.K + 1:]
         u = self._dealiased_irfft(U)
         u_x = self._dealiased_irfft(U * self._freq_deriv)
         U_dot = -1 * self._dealiased_rfft(u * u_x)
@@ -238,7 +238,7 @@ class KSE(SemiLinearFirstOrderSystem):
         |   None
         """
         U = x[..., :self.K + 1]
-        U[1:] = U + 1j * x[..., self.K + 1:]
+        U[1:] = U[1:] + 1j * x[..., self.K + 1:]
         return irfft(U, n=self.N, norm='forward')
 
     def phys_to_state(self, u: Tensor) -> Tensor:
