@@ -104,8 +104,8 @@ class KSE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\vec{x} &= (\\text{Re} \\: U_{0}, \\text{Re} \\: U_1, \\cdots,
-            \\text{Re} \\: U_K, \\text{Im} \\: U_1, \\cdots, \\text{Im} \\
+            \\vec{x} &= (\\text{Re} \\: U_{0}, \\text{Re} \\: U_1, \\ldots,
+            \\text{Re} \\: U_K, \\text{Im} \\: U_1, \\ldots, \\text{Im} \\
             U_{K}).
         \\end{align*}
 

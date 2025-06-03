@@ -8,7 +8,7 @@ system.
 # import built-in python-package code
 from typing import Tuple
 # import external python-package code
-from torch import arange, cat, conj, diag, pi, rand, randn
+from torch import arange, cat, conj, pi, rand, randn
 from torch import Tensor, zeros
 from torch.fft import ifft, fft
 from torch.linalg import norm
@@ -87,12 +87,21 @@ class CGLE(SemiLinearFirstOrderSystem):
     where :math:`m \\in [-K : K]` is the frequency index and
     :math:`n \\in [0 : 2K]` is the collocation point index [3]. When using the
     discrete fourier transform we account for aliasing by using the
-    :math:`3/2` rule [3]. Letting :math:`\\vec{x} = (U_{k})_{k\\in [-K : K]}`,
-    the final system takes the form,
+    :math:`3/2` rule [3]. The final system takes the form,
 
     .. math::
         \\begin{align*}
             \\dot{\\vec{x}} = A \\vec{x} + F(\\vec{x}) = f(\\vec{x}).
+        \\end{align*}
+
+    where
+
+    .. math::
+        \\begin{align*}
+            \\vec{x} &= (\\text{Re} \\: U_{0}, \\ldots, \\text{Re} \\: U_{K},
+            \\text{Re} \\: U_{-K}, \\ldots,  \\text{Re} \\: U_{-1},
+            \\text{Im} \\: U_{0}, \\ldots, \\text{Im} \\: U_{K},
+            \\text{Im} \\: U_{-K} \\ldots \\text{Im} \\: U_{-1})
         \\end{align*}
 
     | **Abstract Attributes**
@@ -102,7 +111,7 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``C`` for complex numbers
+    |   ``field`` (``str``): ``R`` for complex numbers
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
@@ -142,7 +151,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     @property
     def field(self) -> str:
-        return 'C'
+        return 'R'
 
     @property
     def A(self) -> Tensor:
@@ -150,7 +159,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
-        return (2 * self.K + 1,)
+        return (2 * (2 * self.K + 1),)
 
     def __init__(self, K: int = 256, L: float = 10.0,
                  alpha_r: float = 1.0, alpha_i: float = 0.0,
@@ -204,9 +213,14 @@ class CGLE(SemiLinearFirstOrderSystem):
         self._K_prime = 3 * K // 2
         self._N_prime = 2 * self._K_prime + 1
         k = cat((arange(0, K + 1), arange(-K, 0)))
-        self._A = Parameter(diag(self.alpha - self.beta
-                                 * (2 * pi * k / self.L)**2),
+        diagonal = self.alpha - self.beta * (2 * pi * k / self.L)**2
+        self._A = Parameter(zeros((self.dims_state[-1], self.dims_state[-1])),
                             requires_grad=False)
+        for i, d in enumerate(diagonal):
+            self._A[i, i] = d.real
+            self._A[i, i + self.N] = -d.imag
+            self._A[i + self.N, i] = d.imag
+            self._A[i + self.N, i + self.N] = d.real
 
     def nonlinear(self, x: Tensor) -> Tensor:
         """Return :math:`F(\\vec{x})`.
@@ -215,11 +229,11 @@ class CGLE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the state with shape
-                ``(...,) +(self.N,)``
+                ``(...,) +(2 * (2 * self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the nonlinear term with shape
-                ``(...,) +(self.N,)``
+                ``(...,) +(2 * (2 * self.K + 1),)``
 
         | **Raises**
         |   None
@@ -232,16 +246,19 @@ class CGLE(SemiLinearFirstOrderSystem):
         |   [3] Peyret, Roger. Spectral methods for incompressible viscous
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
-        u = self._dealiased_ifft(x)
-        return self._dealiased_fft(self.gamma * conj(u) * u * u)
+        U = x[..., :2 * self.K + 1] + 1j * x[..., 2 * self.K + 1:]
+        u = self._dealiased_ifft(U)
+        U_dot = self._dealiased_fft(self.gamma * conj(u) * u * u)
+        return cat((U_dot.real, U_dot.imag), dim=-1)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
 
         This method returns an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim
         U[[0, 1)]`. In particular, an initial condition is sampled in the
-        following way: First, :math:`\\vec{u} \\sim U[\\mathcal{S}^{2n-1}]`.
-        Second, :math:`r\\sim U[[0, 1)]`. Finally, the sample
+        following way: First,
+        :math:`\\vec{u} \\sim U[\\mathcal{S}^{2(2 K + 1) - 1}]`. Second,
+        :math:`r\\sim U[[0, 1)]`. Finally, the sample
         :math:`r\\vec{u}` is returned.
 
 
@@ -249,7 +266,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         |   None
 
         | **Returns**
-        |   ``Tensor``: the initial condition with shape ``(self.N,)``
+        |   ``Tensor``: the initial condition with shape
+                ``(2 * (2 * self.K + 1),)``
 
         | **Raises**
         |   None
@@ -262,10 +280,7 @@ class CGLE(SemiLinearFirstOrderSystem):
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
         radius = rand((1,), device=next(self.parameters()).device.type)
-        sample = radius * direction
-        real = sample[:self.N]
-        comp = sample[self.N:]
-        return real + 1j * comp
+        return radius * direction
 
     def state_to_phys(self, x: Tensor) -> Tensor:
         """Return the physical state given the state.
@@ -273,7 +288,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         This method returns the physical state given the state.
 
         | **Args**
-        |   ``x`` (``Tensor``): the state with shape ``(...,) + (self.N,)``
+        |   ``x`` (``Tensor``): the state with shape
+                ``(2 * (2 * self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the physical state with shape
@@ -285,7 +301,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        return ifft(x, n=self.N, norm='forward')
+        U = x[..., :2 * self.K + 1] + 1j * x[..., 2 * self.K + 1:]
+        return ifft(U, n=self.N, norm='forward')
 
     def phys_to_state(self, u: Tensor) -> Tensor:
         """Return the state given the physical state.
@@ -298,7 +315,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
         | **Returns**
         |   ``Tensor``: the state with shape
-                ``(...,) + (self.N,)``
+                ``(...,) + (2 * (2 * self.K + 1),)``
 
         | **Raises**
         |   None
@@ -306,7 +323,8 @@ class CGLE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        return fft(u, n=self.N, norm='forward')
+        U = fft(u, n=self.N, norm='forward')
+        return cat((U.real, U.imag), dim=-1)
 
     def _dealiased_ifft(self, x: Tensor) -> Tensor:
         shape = x.shape[:-1] + (self._N_prime - (self.K + 1) - self.K,)
