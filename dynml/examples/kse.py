@@ -184,6 +184,7 @@ class KSE(SemiLinearFirstOrderSystem):
         k = cat((arange(0, self.K + 1), arange(1, self.K + 1)))
         ksq = (2 * pi / L) ** 2 * k**2
         self._A = Parameter(diag(ksq * (1 - ksq)), requires_grad=False)
+        k = arange(0, self.K + 1)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
 
     @property
@@ -211,12 +212,12 @@ class KSE(SemiLinearFirstOrderSystem):
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
         # represent the state in frequency space
-        U = x[..., :self.K + 1]
-        U[1:] = U[1:] + 1j * x[..., self.K + 1:]
+        U = x[..., :self.K + 1] + 1j * 0
+        U[..., 1:] = U[..., 1:] + 1j * x[..., self.K + 1:]
         u = self._dealiased_irfft(U)
         u_x = self._dealiased_irfft(U * self._freq_deriv)
         U_dot = -1 * self._dealiased_rfft(u * u_x)
-        return cat((U_dot.real, U_dot.imag[1:]), dim=-1)
+        return cat((U_dot.real, U_dot.imag[..., 1:]), dim=-1)
 
     def state_to_phys(self, x: Tensor) -> Tensor:
         """Return the physical state given the state.
@@ -237,8 +238,8 @@ class KSE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        U = x[..., :self.K + 1]
-        U[1:] = U[1:] + 1j * x[..., self.K + 1:]
+        U = x[..., :self.K + 1] + 1j * 0
+        U[..., 1:] = U[..., 1:] + 1j * x[..., self.K + 1:]
         return irfft(U, n=self.N, norm='forward')
 
     def phys_to_state(self, u: Tensor) -> Tensor:
@@ -261,7 +262,7 @@ class KSE(SemiLinearFirstOrderSystem):
         |   None
         """
         U = rfft(u, n=self.N, norm='forward')
-        return cat((U.real, U.imag[1:]), dim=-1)
+        return cat((U.real, U.imag[..., 1:]), dim=-1)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
