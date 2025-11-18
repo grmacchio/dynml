@@ -52,7 +52,7 @@ class Parabola(SemiLinearFirstOrderSystem):
     |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with default
     |       value :math:`1.0`
     |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
-    |       value :math:`100.0`
+    |       value :math:`10.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``dims_state`` (``int``): the state dimensions
 

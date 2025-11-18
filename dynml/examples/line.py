@@ -107,9 +107,9 @@ class Line(SemiLinearFirstOrderSystem):
     |   ``lambda1`` (``float``): the parameter :math:`\\lambda_1` with default
     |       value :math:`1.0`
     |   ``lambda2`` (``float``): the parameter :math:`\\lambda_2` with default
-    |       value :math:`100.0`
+    |       value :math:`10.0`
     |   ``C`` (``float``): the parameter :math:`C` with default value
-    |       :math:`300.0`
+    |       :math:`30.0`
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``dims_state`` (``int``): the state dimensions
 
