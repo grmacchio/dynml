@@ -44,8 +44,8 @@ class KSE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            u = \\sum_{k=-K}^{K} e^{\\frac{2\\pi i k}{L} \\:\\cdot_x} \\:
-            U_k(\\:\\cdot_{t}).
+            u = \\sum_{k \\in \\mathbb{Z}} e^{\\frac{2\\pi i k}{L}
+            \\:\\cdot_x} \\: U_k(\\:\\cdot_{t}).
         \\end{align*}
 
     By substituting this expression into the P.D.E. and projecting using the
@@ -55,19 +55,52 @@ class KSE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\dot{U}_{k} &= \\left(\\left(\\frac{2\\pi k}{L}\\right)^2
+            \\dot{U}_{k}
+            &= \\left(\\left(\\frac{2\\pi k}{L}\\right)^2
             - \\left(\\frac{2\\pi k}{L}\\right)^4\\right) U_{k}
             - \\mathcal{F}_k \\left(\\frac{\\partial u}{\\partial x} u\\right)
+            \\\\
+            &= \\left(\\left(\\frac{2\\pi k}{L}\\right)^2
+            - \\left(\\frac{2\\pi k}{L}\\right)^4\\right) U_{k}
+            - \\frac{i \\pi k}{L} \\sum_{\\underset{k_1 + k_2 = k}
+            {k_1, k_2 \\in \\mathbb{Z}}} U_{k_1} U_{k_2},
         \\end{align*}
 
-    for :math:`k \\in [-K : K]`. The nonlinear term is
+    for :math:`k \\in \\mathbb{Z}`. Note, :math:`\\dot{U}_0 = 0`; thus,
+    :math:`U_0(\\:\\cdot_{t}) = U_0(0)`. If we set :math:`V_0(\\:\\cdot_{t})
+    = U_0(\\:\\cdot_{t}) - U_0(0) = 0` and set :math:`V_k(\\:\\cdot_{t}) =
+    e^{\\frac{2 \\pi i k}{L} U_0(0) \\:\\cdot_t}U_k(\\:\\cdot_{t})` for
+    :math:`k \\in \\mathbb{Z} - \\{0\\}`, then we can rewrite the equations as
+
+    .. math::
+        \\begin{align*}
+            \\dot{V}_{k}
+            &= \\left(\\left(\\frac{2\\pi k}{L}\\right)^2
+            - \\left(\\frac{2\\pi k}{L}\\right)^4\\right) V_{k}
+            - \\frac{i \\pi k}{L} \\sum_{\\underset{k_1 + k_2 = k}
+            {k_1, k_2 \\in \\mathbb{Z}}} V_{k_1} V_{k_2},
+            \\\\
+            &= \\left(\\left(\\frac{2\\pi k}{L}\\right)^2
+            - \\left(\\frac{2\\pi k}{L}\\right)^4\\right) V_{k}
+            - \\mathcal{F}_k \\left(\\frac{\\partial v}{\\partial x} v\\right).
+        \\end{align*}
+    
+    Consequently, if one wants to solve for :math:`\\{U_k(\\:\\cdot_{t})\\}
+    _{k \\in \\mathbb{Z}}`, then one should set the initial condition of the
+    :math:`V` system of equations to be :math:`V_0(0) = 0` and
+    :math:`V_k(0) = U_k(0)` for :math:`k \\in \\mathbb{Z} - \\{0\\}`, then one
+    can recover :math:`U_k(\\:\\cdot_{t})` for some :math:`U_0(\\:\\cdot_{t})
+    = U_0(0)` by setting :math:`U_k(\\:\\cdot_{t}) = e^{-\\frac{2 \\pi i k}{L}
+    U_0(0) \\:\\cdot_t} V_k(\\:\\cdot_{t})`. Here, we focus on solving the
+    :math:`V` system of equations for the truncated Fourier series with
+    :math:`k` inside the set :math:`[-K : K]`. The nonlinear term is
     approximated using the :math:`1/(2K + 1)` forward-normalized discrete
     Fourier transform :math:`\\mathcal{D}_k` on :math:`[-K : K]` and applying
     the nonlinearity to the solution's values at the collocation points:
 
     .. math::
         \\begin{align*}
-            \\mathcal{F}_{k}\\left(\\partial u / \\partial x \\: u\\right)
+            \\mathcal{F}_{k}\\left(\\partial v / \\partial x \\: v\\right)
             \\approx
             \\mathcal{D}_{k}
             \\left[
@@ -75,13 +108,13 @@ class KSE(SemiLinearFirstOrderSystem):
             \\mathcal{D}_{n}^{-1}
             \\left[
             \\left(
-            \\frac{2\\pi i m}{L} U_m(\\:\\cdot_{t})
+            \\frac{2\\pi i m}{L} V_m(\\:\\cdot_{t})
             \\right)_{m\\:}
             \\right]
             \\cdot
             \\mathcal{D}_{n}^{-1}
             \\left[\\left(
-            U_{m}(\\:\\cdot_{t}) \\right)_{m\\:}
+            V_{m}(\\:\\cdot_{t}) \\right)_{m\\:}
             \\right]
             \\right)_{n\\:}\\right],
         \\end{align*}
@@ -91,9 +124,9 @@ class KSE(SemiLinearFirstOrderSystem):
     discrete fourier transform we account for aliasing by
     using the :math:`3/2` rule [1]. Finally, we represent this system as
     smaller system of ordinary differential equations by removing any
-    extraneous states in :math:`(U_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
-    the Hermitian symmetry condition of real-valued signals. The final system
-    takes the form,
+    extraneous states in :math:`(V_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
+    the Hermitian symmetry condition of real-valued signals and by removing
+    the known state :math:`V_0(\\:\\cdot_{t}) = 0`. The final system is
 
     .. math::
         \\begin{align*}
@@ -104,9 +137,9 @@ class KSE(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\vec{x} &= (\\text{Re} \\: U_{0}, \\text{Re} \\: U_1, \\ldots,
-            \\text{Re} \\: U_K, \\text{Im} \\: U_1, \\ldots, \\text{Im} \\
-            U_{K}).
+            \\vec{x} &= (\\text{Re} \\: V_1, \\ldots,
+            \\text{Re} \\: V_K, \\text{Im} \\: V_1, \\ldots, \\text{Im} \\
+            V_{K}).
         \\end{align*}
 
     | **Abstract Attributes**
@@ -151,7 +184,7 @@ class KSE(SemiLinearFirstOrderSystem):
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
-        return (2 * self.K + 1,)
+        return (2 * self.K,)
 
     def __init__(self, K: int = 32, L: float = 11.0):
         """Initialize the superclass and model parameters.
@@ -181,7 +214,7 @@ class KSE(SemiLinearFirstOrderSystem):
         self.N = 2 * K + 1
         self._K_prime = 3 * self.K // 2
         self._N_prime = 2 * self._K_prime + 1
-        k = cat((arange(0, self.K + 1), arange(1, self.K + 1)))
+        k = cat((arange(1, self.K + 1), arange(1, self.K + 1)))
         ksq = (2 * pi / L) ** 2 * k**2
         self._A = Parameter(diag(ksq * (1 - ksq)), requires_grad=False)
         k = arange(0, self.K + 1)
@@ -198,11 +231,11 @@ class KSE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the state with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * self.K,)``
 
         | **Returns**
         |   ``Tensor``: the nonlinear term with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * self.K,)``
 
         | **Raises**
         |   None
@@ -212,12 +245,13 @@ class KSE(SemiLinearFirstOrderSystem):
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
         # represent the state in frequency space
-        U = x[..., :self.K + 1] + 1j * 0
-        U[..., 1:] = U[..., 1:] + 1j * x[..., self.K + 1:]
-        u = self._dealiased_irfft(U)
-        u_x = self._dealiased_irfft(U * self._freq_deriv)
-        U_dot = -1 * self._dealiased_rfft(u * u_x)
-        return cat((U_dot.real, U_dot.imag[..., 1:]), dim=-1)
+        V = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        V[..., 1:] = x[..., :self.K] + 1j * x[..., self.K:]
+        v = self._dealiased_irfft(V)
+        v_x = self._dealiased_irfft(V * self._freq_deriv)
+        V_dot = -1 * self._dealiased_rfft(v * v_x)
+        return cat((V_dot[..., 1:].real, V_dot[..., 1:].imag), dim=-1)
 
     def state_to_phys(self, x: Tensor) -> Tensor:
         """Return the physical state given the state.
@@ -226,7 +260,7 @@ class KSE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the state with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * self.K,)``
 
         | **Returns**
         |   ``Tensor``: the physical state with shape
@@ -238,22 +272,23 @@ class KSE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        U = x[..., :self.K + 1] + 1j * 0
-        U[..., 1:] = U[..., 1:] + 1j * x[..., self.K + 1:]
-        return irfft(U, n=self.N, norm='forward')
+        V = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        V[..., 1:] = x[..., :self.K] + 1j * x[..., self.K:]
+        return irfft(V, n=self.N, norm='forward')
 
-    def phys_to_state(self, u: Tensor) -> Tensor:
+    def phys_to_state(self, v: Tensor) -> Tensor:
         """Return the state given the physical state.
 
         This method returns the state given the physical state.
 
         | **Args**
-        |   ``u`` (``Tensor``): the physical state with shape
+        |   ``v`` (``Tensor``): the physical state with shape
                 ``(...,) + (2 * self.K + 1,)``
 
         | **Returns**
         |   ``Tensor``: the state with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * self.K,)``
 
         | **Raises**
         |   None
@@ -261,8 +296,8 @@ class KSE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        U = rfft(u, n=self.N, norm='forward')
-        return cat((U.real, U.imag[..., 1:]), dim=-1)
+        V = rfft(v, n=self.N, norm='forward')
+        return cat((V[..., 1:].real, V[..., 1:].imag), dim=-1)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
@@ -270,7 +305,7 @@ class KSE(SemiLinearFirstOrderSystem):
         This method returns an I.C. where
         :math:`\\|\\vec{x\\|_2 \\sim U[[0, 1)]`. In particular,
         an initial condition is sampled in the following way: First,
-        :math:`\\vec{u} \\sim U[\\mathcal{S}^{2 K}]`. Second,
+        :math:`\\vec{u} \\sim U[\\mathcal{S}^{2 K - 1}]`. Second,
         :math:`r\\sim U[[0, 1)]`. Finally, the sample
         :math:`\\vec{x} = ru` is returned.
 
@@ -279,7 +314,7 @@ class KSE(SemiLinearFirstOrderSystem):
 
         | **Returns**
         |   ``Tensor``: the initial condition with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * self.K,)``
 
         | **Raises**
         |   None
@@ -287,19 +322,19 @@ class KSE(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        gaussian = randn((2 * self.K + 1,),
+        gaussian = randn((2 * self.K,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
         radius = rand((1,), device=next(self.parameters()).device.type)
         return radius * direction
 
-    def _dealiased_irfft(self, U: Tensor) -> Tensor:
-        U_pad = cat((U[..., :self.K + 1],
-                     zeros(U.shape[:-1] + (self._K_prime - self.K,),
-                           dtype=U.dtype,
+    def _dealiased_irfft(self, V: Tensor) -> Tensor:
+        U_pad = cat((V[..., :self.K + 1],
+                     zeros(V.shape[:-1] + (self._K_prime - self.K,),
+                           dtype=V.dtype,
                            device=next(self.parameters()).device.type)),
                     dim=-1)
         return irfft(U_pad, n=self._N_prime, norm='forward')
 
-    def _dealiased_rfft(self, u: Tensor) -> Tensor:
-        return rfft(u, n=self._N_prime, norm='forward')[..., :self.K + 1]
+    def _dealiased_rfft(self, v: Tensor) -> Tensor:
+        return rfft(v, n=self._N_prime, norm='forward')[..., :self.K + 1]
