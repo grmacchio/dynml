@@ -161,7 +161,7 @@ class CGLE(SemiLinearFirstOrderSystem):
     def dims_state(self) -> Tuple[int, ...]:
         return (2 * (2 * self.K + 1),)
 
-    def __init__(self, K: int = 256, L: float = 10.0,
+    def __init__(self, K: int = 32, L: float = 10.0,
                  alpha_r: float = 1.0, alpha_i: float = 0.0,
                  beta_r: float = 1.0, beta_i: float = 1.0,
                  gamma_r: float = -1.0, gamma_i: float = -2.0) -> None:
@@ -171,7 +171,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``K`` (``int``): the number of Fourier modes :math:`K` with a
-                default value of ``256``
+                default value of ``32``
         |   ``L`` (``float``): the length of the domain :math:`L` with a
                 default value of ``10.0``
         |   ``alpha_r`` (``float``): the real part of the parameter
