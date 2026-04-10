@@ -402,7 +402,6 @@ class Cylinder(DiscreteSystem):
     |   ``ep`` (``float``): the value of the parameter :math:`\\epsilon`
     |   ``s_c`` (``Tuple[float, float]``): the value of the parameter
             :math:`s_c`
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``int``): the state dimensions
     |   ``mask`` (``Tensor``): the mask for grid point delineation
 
@@ -434,10 +433,6 @@ class Cylinder(DiscreteSystem):
             Problems
     |   [8] 2025 - Nosenchuck - Lectures in MAE 423 Heat Transfer
     """
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def dims_state(self) -> Tuple[int, ...]:

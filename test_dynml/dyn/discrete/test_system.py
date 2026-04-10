@@ -27,7 +27,6 @@ class DiscreteSystemExample(DiscreteSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``int``): the state dimensions
 
     | **Abstract Methods**
@@ -43,10 +42,6 @@ class DiscreteSystemExample(DiscreteSystem):
     | **References**
     |   None
     """
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
@@ -99,7 +94,7 @@ def test_DiscreteSystem() -> None:
     """Test the ``DiscreteSystem`` class.
 
     This method tests the ``DiscreteSystem`` class. In particular, it
-    instantiates ``DiscreteSystemExample`` and tests ``field``, ``dims_state``,
+    instantiates ``DiscreteSystemExample`` and tests ``dims_state``,
     and ``map()``.
 
     | **Args**
@@ -121,8 +116,6 @@ def test_DiscreteSystem() -> None:
     # initialize DiscreteSystemExample
     dims_state = (4, 3)
     test = DiscreteSystemExample(dims_state).to(device)
-    # test field
-    assert test.field == 'R'
     # test num_states
     assert test.dims_state == dims_state
     # test map

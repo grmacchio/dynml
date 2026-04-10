@@ -144,6 +144,7 @@ class ExplicitTimeStepMethod(ABC, Module):
             raise NotImplementedError(f"'{method}' is an unknown "
                                       + "time-stepping method") from exc
 
+    @classmethod
     def __init_subclass__(cls) -> None:
         """Register subclasses by their lowercase name.
 
@@ -593,6 +594,7 @@ class LinearSolver(ABC, Module):
             raise NotImplementedError(f"'{method}' is an unknown "
                                       + "linear solver") from exc
 
+    @classmethod
     def __init_subclass__(cls) -> None:
         """Register subclasses by their lowercase name.
 
@@ -1015,6 +1017,7 @@ class SemiLinearTimeStepMethod(ABC, Module):
                                       + "semi-linear time-stepping "
                                       + "method") from exc
 
+    @classmethod
     def __init_subclass__(cls) -> None:
         """Register subclasses by their lowercase name.
 
@@ -1335,7 +1338,6 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): the field the dynamical system is defined over
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``method`` (``Union[ExplicitTimeStepMethod,
             SemiLinearTimeStepMethod]``): the time-stepping method
@@ -1353,10 +1355,6 @@ class DiscretizedFirstOrderSystem(DiscreteSystem):
     | **References**
     |   None
     """
-
-    @property
-    def field(self) -> str:
-        return self.method.sys.field
 
     @property
     def dims_state(self) -> Tuple[int, ...]:

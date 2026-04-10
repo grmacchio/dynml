@@ -84,7 +84,7 @@ class KSE(SemiLinearFirstOrderSystem):
             - \\left(\\frac{2\\pi k}{L}\\right)^4\\right) V_{k}
             - \\mathcal{F}_k \\left(\\frac{\\partial v}{\\partial x} v\\right).
         \\end{align*}
-    
+
     Consequently, if one wants to solve for :math:`\\{U_k(\\:\\cdot_{t})\\}
     _{k \\in \\mathbb{Z}}`, then one should set the initial condition of the
     :math:`V` system of equations to be :math:`V_0(0) = 0` and
@@ -149,7 +149,6 @@ class KSE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value ``32``
@@ -179,12 +178,12 @@ class KSE(SemiLinearFirstOrderSystem):
     """
 
     @property
-    def field(self) -> str:
-        return 'R'
-
-    @property
     def dims_state(self) -> Tuple[int, ...]:
         return (2 * self.K,)
+
+    @property
+    def A(self) -> Tensor:
+        return self._A
 
     def __init__(self, K: int = 32, L: float = 11.0):
         """Initialize the superclass and model parameters.
@@ -219,10 +218,6 @@ class KSE(SemiLinearFirstOrderSystem):
         self._A = Parameter(diag(ksq * (1 - ksq)), requires_grad=False)
         k = arange(0, self.K + 1)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
-
-    @property
-    def A(self) -> Tensor:
-        return self._A
 
     def nonlinear(self, x: Tensor) -> Tensor:
         """Return :math:`F(\\vec{x})`.

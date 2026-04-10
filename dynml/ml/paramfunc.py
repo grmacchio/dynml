@@ -239,15 +239,14 @@ class ParamFunc(ABC, Module):
         # return the addition of the two parameterized functions
         return Add(self, func2)
 
-    def __rmul__(self, coefficient: Union[float, complex]
-                 ) -> "CoefficientMult":
+    def __rmul__(self, coefficient: float) -> "CoefficientMult":
         """Return the multiplication of a parameterized function by a scalar.
 
         This method returns the multiplication of a parameterized function by a
         scalar.
 
         | **Args**
-        |   ``coefficient`` (``Union[float, complex]``): the scalar coefficient
+        |   ``coefficient`` (``float``): the scalar coefficient
 
         | **Return**
         |   ``CoefficientMult``: the scalar multiplication of the parameterized
@@ -387,7 +386,7 @@ class CoefficientMult(ParamFunc):
     | **Attributes**
     |   ``dims_in`` (``Tuple[int, ...]``): the input dimensions
     |   ``dims_out`` (``Tuple[int, ...]``): the output dimensions
-    |   ``coefficient`` (``Union[float, complex]``): the scalar coefficient
+    |   ``coefficient`` (``float``): the scalar coefficient
     |   ``func`` (``ParamFunc``): the parameterized function
 
     | **Abstract Methods**
@@ -442,15 +441,14 @@ class CoefficientMult(ParamFunc):
         # return the scalar multiplication of the parameterized function output
         return self.coefficient * self.func.forward(x)
 
-    def __init__(self, coefficient: Union[float, complex], func: ParamFunc
-                 ) -> None:
+    def __init__(self, coefficient: float, func: ParamFunc) -> None:
         """Initialize the superclass and attributes.
 
         This method initializes the superclass ``ParamFunc`` and the
         attributes.
 
         | **Args**
-        |   ``coefficient`` (``Union[float, complex]``): the scalar coefficient
+        |   ``coefficient`` (``float``): the scalar coefficient
         |   ``func`` (``ParamFunc``): the parameterized function
 
         | **Return**

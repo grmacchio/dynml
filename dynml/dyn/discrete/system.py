@@ -25,7 +25,6 @@ class DiscreteSystem(ABC, Module):
     This class represents a discrete dynamical system.
 
     | **Abstract Attributes**
-    |   ``field`` (``str``): the field the dynamical system is defined over
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
 
     | **Class Attributes**
@@ -46,30 +45,6 @@ class DiscreteSystem(ABC, Module):
     | **References**
     |   None
     """
-
-    @property
-    @abstractmethod
-    def field(self) -> str:
-        """Return the field the dynamical system is defined over.
-
-        This method returns the field the dynamical system is defined over. The
-        allowable field are ``R`` and ``C`` for real and complex numbers,
-        respectively.
-
-        | **Args**
-        |   None
-
-        | **Return**
-        |   ``str``: the field the dynamical system is defined over
-
-        | **Raises**
-        |   None
-
-        | **References**
-        |   None
-        """
-        # code pass as a placeholder for future implementation
-        pass
 
     @property
     @abstractmethod

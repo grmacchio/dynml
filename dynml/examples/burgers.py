@@ -8,7 +8,7 @@ This module contains all code related to the Burgers' dynamical system.
 from math import pi as math_pi
 from typing import Tuple
 # import external python-package code
-from torch import arange, diag, pi, rand, randn, Tensor, zeros
+from torch import arange, cat, diag, pi, rand, randn, Tensor, zeros
 from torch.fft import irfft, rfft
 from torch.linalg import norm
 from torch.nn import Parameter
@@ -94,21 +94,27 @@ class Burgers(SemiLinearFirstOrderSystem):
     smaller system of ordinary differential equations by removing any
     extraneous states in :math:`(U_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
     the Hermitian symmetry condition of real-valued signals. The left over
-    complex-valued states are :math:`\\vec{x} = (U_{k}(\\:\\cdot_{t})
-    )_{k \\in [0 : K]}`. The final system takes the
-    form,
+    complex-valued states are :math:`(U_{k}(\\:\\cdot_{t})
+    )_{k \\in [0 : K]}`. The final system takes the form,
 
     .. math::
         \\begin{align*}
-            \\dot{\\vec{x}} = A \\vec{x} + F(\\vec{x}) = f(\\vec{x}).
+            \\dot{\\vec{x}} = A \\vec{x} + F(\\vec{x}) = f(\\vec{x}),
+        \\end{align*}
+
+    where
+
+    .. math::
+        \\begin{align*}
+            \\vec{x} &= (\\text{Re} \\: U_0, \\ldots,
+            \\text{Re} \\: U_K, \\text{Im} \\: U_0, \\ldots, \\text{Im} \\
+            U_{K}).
         \\end{align*}
 
     One could reduce the memory requirement by noting :math:`U_{0}` is real and
-    removing the one redundant state, resulting in
-    :math:`\\vec{x}_{\\mathbb{R}}` real-valued state. This, was not implemented
-    as the memory savings are minimal and reshaping into real tensors would
-    require more overhead than its worth considering states in the frequency
-    domain, or physical domain, are readily used in computation.
+    removing the one redundant state, resulting in the real-valued state
+    :math:`\\vec{x}_{\\mathbb{R}}`. This, was not implemented as the memory
+    savings are minimal and the implementation would be unnecessarily complex.
 
     | **Abstract Attributes**
     |   None
@@ -117,7 +123,6 @@ class Burgers(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``C`` for complex numbers
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with a default
@@ -149,12 +154,8 @@ class Burgers(SemiLinearFirstOrderSystem):
     """
 
     @property
-    def field(self) -> str:
-        return 'C'
-
-    @property
     def dims_state(self) -> Tuple[int, ...]:
-        return (self.K + 1,)
+        return (2 * (self.K + 1),)
 
     @property
     def A(self) -> Tensor:
@@ -192,7 +193,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         self.N = 2 * K + 1
         self._K_prime = 3 * self.K // 2
         self._N_prime = 2 * self._K_prime + 1
-        k = arange(self.K + 1)
+        k = cat((arange(0, self.K + 1), arange(0, self.K + 1)))
         self._A = Parameter(diag(self.nu * -1 * (2 * pi / L) ** 2 * k**2),
                             requires_grad=False)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
@@ -204,11 +205,11 @@ class Burgers(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``\\vec{x}`` (``Tensor``): the state with shape
-                ``(...,) + (self.K + 1,)``
+                ``(...,) + (2 * (self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the nonlinear term with shape
-                ``(...,) + (self.K + 1,)``
+                ``(...,) + (2 * (self.K + 1),)``
 
         | **Raises**
         |   None
@@ -218,9 +219,13 @@ class Burgers(SemiLinearFirstOrderSystem):
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
         # approximate the nonlinear term
-        u = self._dealiased_irfft(x)
-        u_x = self._dealiased_irfft(x * self._freq_deriv)
-        return -1 * self._dealiased_rfft(u * u_x)
+        U = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        U[..., :] = x[..., :self.K + 1] + 1j * x[..., self.K + 1:]
+        u = self._dealiased_irfft(U)
+        u_x = self._dealiased_irfft(U * self._freq_deriv)
+        U_dot = -1 * self._dealiased_rfft(u * u_x)
+        return cat((U_dot[..., :].real, U_dot[..., :].imag), dim=-1)
 
     def state_to_phys(self, x: Tensor) -> Tensor:
         """Return the physical state given the state.
@@ -228,7 +233,8 @@ class Burgers(SemiLinearFirstOrderSystem):
         This method returns the physical state given the state.
 
         | **Args**
-        |   ``x`` (``Tensor``): the state with shape ``(...,) + (self.K + 1,)``
+        |   ``x`` (``Tensor``): the state with shape
+                ``(...,) + (2 * (self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the physical state with shape
@@ -240,7 +246,10 @@ class Burgers(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        return irfft(x, n=self.N, norm='forward')
+        U = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        U[..., :] = x[..., :self.K + 1] + 1j * x[..., self.K + 1:]
+        return irfft(U, n=self.N, norm='forward')
 
     def phys_to_state(self, u: Tensor) -> Tensor:
         """Return the state given the physical state.
@@ -253,7 +262,7 @@ class Burgers(SemiLinearFirstOrderSystem):
 
         | **Returns**
         |   ``Tensor``: the state with shape
-                ``(...,) + (self.K + 1,)``
+                ``(...,) + (2 * (self.K + 1),)``
 
         | **Raises**
         |   None
@@ -261,7 +270,8 @@ class Burgers(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        return rfft(u, n=self.N, norm='forward')
+        U = rfft(u, n=self.N, norm='forward')
+        return cat((U[..., :].real, U[..., :].imag), dim=-1)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}_{\\mathbb{R}}\\|_2
@@ -280,7 +290,7 @@ class Burgers(SemiLinearFirstOrderSystem):
 
         | **Returns**
         |   ``Tensor``: the initial condition with shape
-                ``(...,) + (self.K + 1,)``
+                ``(...,) + (2 * (self.K + 1),)``
 
         | **Raises**
         |   None
@@ -288,7 +298,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        gaussian = randn((2 * self.K + 1,),
+        gaussian = randn((2 * (self.K + 1) - 1,),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
         radius = rand((1,), device=next(self.parameters()).device.type)
@@ -297,14 +307,15 @@ class Burgers(SemiLinearFirstOrderSystem):
         comp = zeros((self.K + 1,), device=next(self.parameters()).device.type)
         real = point[:self.K + 1]
         comp[1:] = point[self.K + 1:]
-        return real + 1j * comp
+        return cat((real, comp), dim=-1)
 
-    def _dealiased_irfft(self, x: Tensor) -> Tensor:
-        x_pad = zeros(x.shape[:-1] + (self._K_prime + 1,),
-                      dtype=x.dtype,
-                      device=next(self.parameters()).device.type).squeeze(0)
-        x_pad[..., :self.K + 1] = x[..., :self.K + 1]
-        return irfft(x_pad, n=self._N_prime, norm='forward')
+    def _dealiased_irfft(self, U: Tensor) -> Tensor:
+        U_pad = cat((U[..., :self.K + 1],
+                     zeros(U.shape[:-1] + (self._K_prime - self.K,),
+                           dtype=U.dtype,
+                           device=next(self.parameters()).device.type)),
+                    dim=-1)
+        return irfft(U_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, u: Tensor) -> Tensor:
         return rfft(u, n=self._N_prime, norm='forward')[..., :self.K + 1]

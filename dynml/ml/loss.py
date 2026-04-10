@@ -26,8 +26,8 @@ def recon_loss(Y: Tensor, X: Tensor) -> Tensor:
         \\mathcal{L}_{\\text{recon}} =
         \\frac{1}{N} \\sum_{i=1}^{N} \\|y_i - x_i\\|_2^2,
 
-    where :math:`N` is ``X.shape[0:-1]`` and ``(x_i, y_i)`` is an input and
-    target data pair.
+    where :math:`N` is the product of ``X.shape[0:-1]`` and ``(x_i, y_i)`` is
+    an input and target data pair.
 
     | **Args**
     |   ``Y`` (``Tensor``): the target data with shape ``(...,) + (dim,)``

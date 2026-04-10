@@ -28,7 +28,6 @@ class FirstOrderSystemExample(FirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions ``(2,)``
 
     | **Abstract Methods**
@@ -44,10 +43,6 @@ class FirstOrderSystemExample(FirstOrderSystem):
     | **References**
     |   None
     """
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
@@ -101,7 +96,7 @@ def test_FirstOrderSystem() -> None:
 
     This method tests the ``FirstOrderSystem`` class. In particular, this
     method instantiates a subclass of ``FirstOrderSystem`` and tests,
-    ``field``, ``dims_state``, and ``rhs()``.
+    ``dims_state``, and ``rhs()``.
 
     | **Args**
     |   None
@@ -121,8 +116,6 @@ def test_FirstOrderSystem() -> None:
     device = 'cuda' if is_available() else 'cpu'
     # instantiate the subclass of FirstOrderSystem
     test = FirstOrderSystemExample().to(device)
-    # test field
-    assert test.field == 'R'
     # test num_states
     assert test.dims_state == (2,)
     # test rhs
@@ -146,7 +139,6 @@ class SemiLinearFirstOrderSystemExample(SemiLinearFirstOrderSystem):
 
     | **Attributes**
     |   ``A`` (``Parameter``): the matrix ``torch.tensor([[2, 1], [1, 2]])``
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``int``): the state dimensions ``(2,)``
 
     | **Abstract Methods**
@@ -167,10 +159,6 @@ class SemiLinearFirstOrderSystemExample(SemiLinearFirstOrderSystem):
     @property
     def A(self) -> Tensor:
         return self._A
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
@@ -224,7 +212,7 @@ def test_SemiLinearFirstOrderSystem() -> None:
 
     This method tests the ``SemiLinearFirstOrderSystem`` class. In particular,
     this method instantiates a subclass of ``SemiLinearFirstOrderSystem`` and
-    tests ``A``, ``field``, ``dims_state``, and ``nonlinear()``.
+    tests ``A``, ``dims_state``, and ``nonlinear()``.
 
     | **Args**
     |   None
@@ -248,8 +236,6 @@ def test_SemiLinearFirstOrderSystem() -> None:
     desired = tensor([[2., 1.], [1., 2.]], device=device)
     assert test.A.allclose(desired, atol=0.0)
     assert test.A.shape == (2, 2)
-    # test field
-    assert test.field == 'R'
     # test num_states
     assert test.dims_state == (2,)
     # test nonlinear

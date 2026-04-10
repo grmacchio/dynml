@@ -929,7 +929,7 @@ def test_DiscretizedFirstOrderSystem() -> None:
 
     This method tests the ``DiscretizedFirstOrderSystem`` class. In particular,
     this method instantiates a ``DiscretizedFirstOrderSystem`` object and tests
-    ``field``, ``dims_state``, ``method``, and ``map()``.
+    ``dims_state``, ``method``, and ``map()``.
 
     | **Args**
     |   None
@@ -954,9 +954,6 @@ def test_DiscretizedFirstOrderSystem() -> None:
     sys2 = SemiLinearFirstOrderSystemExample()
     method2 = RK2CN(1.0, sys2, 'lu')
     test2 = DiscretizedFirstOrderSystem(method2).to(device)
-    # test field
-    assert test1.field == sys1.field
-    assert test2.field == sys2.field
     # test num_states
     assert test1.dims_state == sys1.dims_state
     assert test2.dims_state == sys2.dims_state

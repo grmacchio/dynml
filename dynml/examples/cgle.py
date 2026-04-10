@@ -111,7 +111,6 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``R`` for complex numbers
     |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
@@ -148,10 +147,6 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   [3] Peyret, Roger. Spectral methods for incompressible viscous flow.
             Vol. 148. New York: Springer, 2002, ch. 2.
     """
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def A(self) -> Tensor:

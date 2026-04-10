@@ -63,7 +63,6 @@ class Paraboloid(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``field`` (``str``): ``R`` for real numbers
     |   ``dims_state`` (``int``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``mu`` (``float``): the value of the parameter :math:`\\mu` with
@@ -98,10 +97,6 @@ class Paraboloid(SemiLinearFirstOrderSystem):
             learning for universal linear embeddings of nonlinear dynamics."
             Nature communications 9.1 (2018): 4950, p. 5.
     """
-
-    @property
-    def field(self) -> str:
-        return 'R'
 
     @property
     def dims_state(self) -> Tuple[int, ...]:
