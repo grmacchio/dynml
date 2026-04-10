@@ -196,6 +196,7 @@ class Burgers(SemiLinearFirstOrderSystem):
         k = cat((arange(0, self.K + 1), arange(0, self.K + 1)))
         self._A = Parameter(diag(self.nu * -1 * (2 * pi / L) ** 2 * k**2),
                             requires_grad=False)
+        k = arange(0, self.K + 1)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
 
     def nonlinear(self, x: Tensor) -> Tensor:
