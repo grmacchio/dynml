@@ -7,8 +7,7 @@ This module tests the ``dynml.dyn.cont.ode.firstorder.discretize`` module.
 # import built-in python-package code
 from typing import Type
 # import external python-package code
-from torch import diag, eye, float64, set_default_dtype, tensor, Tensor
-from torch.cuda import is_available
+from torch import diag, eye, tensor, Tensor
 from torch.linalg import lu_factor
 from torch.nn import Parameter
 # import internal python-package code
@@ -22,6 +21,7 @@ from dynml.dyn.cont.ode.firstorder.discretize import DiscretizedFirstOrderSystem
 from dynml.dyn.cont.ode.firstorder.discretize import gen_approx_discrete_sys
 from dynml.dyn.cont.ode.firstorder.system import FirstOrderSystem
 from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
+from dynml.utils.config import config
 from test_dynml.dyn.cont.ode.firstorder.test_system import FirstOrderSystemExample            # noqa: E501
 from test_dynml.dyn.cont.ode.firstorder.test_system import SemiLinearFirstOrderSystemExample  # noqa: E501
 
@@ -126,10 +126,8 @@ def test_ExplicitTimeStepMethod() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of ExplicitTimeStepMethodExample
     dt = 1.0
     sys = FirstOrderSystemExample().to(device)
@@ -178,10 +176,8 @@ def test_Euler() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of Euler
     dt = 1.0
     sys = FirstOrderSystemExample().to(device)
@@ -227,10 +223,8 @@ def test_RK2() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of RK2
     dt = 1.0
     sys = FirstOrderSystemExample().to(device)
@@ -275,10 +269,8 @@ def test_RK4() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of RK4
     dt = 1.0
     sys = FirstOrderSystemExample().to(device)
@@ -405,10 +397,8 @@ def test_LinearSolver() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of LinearSolverExample
     M = tensor([[2.0, 0.0], [0.0, 3.0]], device=device)
     M_inv_T = tensor([[1 / 2.0, 0.0], [0.0, 1.0 / 3.0]], device=device).T
@@ -460,10 +450,8 @@ def test_LU() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of LU
     M = tensor([[2.0, 0.0], [0.0, 3.0]], device=device)
     M_inv = tensor([[1 / 2.0, 0.0], [0.0, 1.0 / 3.0]], device=device)
@@ -516,10 +504,8 @@ def test_Inv() -> None:
     | **References**
     |  None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of Inv
     M = tensor([[2.0, 1.0], [1.0, 2.0]], device=device)
     M_inv_T = (tensor([[2.0, -1.0], [-1.0, 2.0]], device=device) / 3.0).T
@@ -570,10 +556,8 @@ def test_Diag() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of Diag
     M = tensor([[2.0, 0.0], [0.0, 3.0]], device=device)
     M_inv = tensor([[1 / 2.0, 0.0], [0.0, 1.0 / 3.0]], device=device)
@@ -750,10 +734,8 @@ def test_SemiLinearTimeStepMethod() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of SemiLinearTimeStepMethodExample
     dt = 1.0
     sys = SemiLinearFirstOrderSystemExample()
@@ -813,10 +795,8 @@ def test_RK2CN() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of RK2CN
     dt = 1.0
     sys = SemiLinearFirstOrderSystemExample()
@@ -871,10 +851,8 @@ def test_RK3CN() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of RK3CN
     dt = 1.0
     sys = SemiLinearFirstOrderSystemExample()
@@ -943,10 +921,8 @@ def test_DiscretizedFirstOrderSystem() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of DiscretizedFirstOrderSystem
     sys1 = FirstOrderSystemExample()
     method1 = RK2(1.0, sys1)
@@ -993,10 +969,8 @@ def test_gen_approx_discrete_sys() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # generate the approximate discrete system using Euler's method
     fos1 = FirstOrderSystemExample()
     ds1 = gen_approx_discrete_sys(fos1, 1.0, 'euler').to(device)

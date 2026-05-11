@@ -7,12 +7,12 @@ This module tests the ``dynml.dyn.cont.ode.firstorder.system`` module.
 # import built-in python-package code
 from typing import Tuple
 # import external python-package code
-from torch import float64, set_default_dtype, tensor, Tensor
+from torch import tensor, Tensor
 from torch.nn import Parameter
-from torch.cuda import is_available
 # import internal python-package code
 from dynml.dyn.cont.ode.firstorder.system import FirstOrderSystem
 from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
+from dynml.utils.config import config
 
 
 # test FirstOrderSystem
@@ -110,10 +110,8 @@ def test_FirstOrderSystem() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the subclass of FirstOrderSystem
     test = FirstOrderSystemExample().to(device)
     # test num_states
@@ -226,10 +224,8 @@ def test_SemiLinearFirstOrderSystem() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate SemiLinearFirstOrderSystemExample
     test = SemiLinearFirstOrderSystemExample().to(device)
     # test L

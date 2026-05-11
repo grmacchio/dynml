@@ -6,13 +6,9 @@ This module tests the ``dynml.ml.paramfunc`` module.
 
 # import built-in python-package code
 from typing import Tuple
-from random import seed as python_seed
 # import external python-package code
-from torch import erf, exp, float64, rand, set_default_dtype, sqrt, stack
+from torch import erf, exp, rand, sqrt, stack
 from torch import tensor, Tensor
-from torch import manual_seed as torch_manual_seed
-from torch.cuda import is_available
-from torch.cuda import manual_seed as cuda_manual_seed
 from torch.nn import Linear as TorchLinear
 from torch.nn.functional import gelu
 # import internal python-package code
@@ -21,6 +17,7 @@ from dynml.ml.paramfunc import polynomial_init_uniform, ParamFunc, Identity
 from dynml.ml.paramfunc import CoefficientMult, Add, Flatten, Unflatten
 from dynml.ml.paramfunc import Composition, MatrixMult, Polynomial, Affine
 from dynml.ml.paramfunc import GELU, Sigmoid, FullyConnMLP
+from dynml.utils.config import config
 
 
 # test affine_init_torch
@@ -41,19 +38,15 @@ def test_affine_init_torch() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
     # test the affine_init_torch() method
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    device = config(64, 0)
     b, A = affine_init_torch(3, 2)
+    b = b.to(device)
+    A = A.to(device)
     assert A.shape == (3, 2)
     assert b.shape == (1, 2)
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
-    torchlinear = TorchLinear(3, 2)
+    config(64, 0)
+    torchlinear = TorchLinear(3, 2).to(device)
     assert A.detach().allclose(torchlinear.weight.T.detach(), atol=0.0)
     assert b.detach().allclose(torchlinear.bias.unsqueeze(0).detach(),
                                atol=0.0)
@@ -115,25 +108,24 @@ def test_polynomial_init_uniform() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
+    # configure the test
+    device = config(64, 0)
     # test the polynomial_init_uniform() method
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
     degrees = (0, 1, 2)
     c1, c2, c3 = polynomial_init_uniform(3, 2, 2.0, degrees)
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    c1 = c1.to(device)
+    c2 = c2.to(device)
+    c3 = c3.to(device)
+    # configure the test
+    config(64, 0)
     powers: Tuple[Tuple[int, ...], ...] = ((0, 0, 0),)
-    desired = 2.0 * (2 * rand(len(powers), 2) - 1)
+    desired = 2.0 * (2 * rand(len(powers), 2, device=device) - 1)
     assert c1.allclose(desired, atol=0.0)
     powers = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
-    desired = 2.0 * (2 * rand(len(powers), 2) - 1)
+    desired = 2.0 * (2 * rand(len(powers), 2, device=device) - 1)
     assert c2.allclose(desired, atol=0.0)
     powers = ((2, 0, 0), (1, 1, 0), (1, 0, 1), (0, 2, 0), (0, 1, 1), (0, 0, 2))
-    desired = 2.0 * (2 * rand(len(powers), 2) - 1)
+    desired = 2.0 * (2 * rand(len(powers), 2, device=device) - 1)
     assert c3.allclose(desired, atol=0.0)
 
 
@@ -246,10 +238,8 @@ def test_ParamFunc() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of ParamFuncExample
     test1 = ParamFuncExample().to(device)
     # test dims_in
@@ -287,10 +277,8 @@ def test_Identity() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # create an instance of Identity
     test = Identity((2,)).to(device)
     # test dims_in
@@ -329,10 +317,8 @@ def test_CoefficientMult() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate CoefficientMult
     test = CoefficientMult(2.0, Identity((2,))).to(device)
     # test dims_in
@@ -384,17 +370,15 @@ def test_Add() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate Add
     try:
         Add(2 * Identity((2,)), 3 * Identity((3,)))
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The input and output dimensions of the "
-                              + "parameterized functions do not match.")
+                              + "parameterized functions do not match")
     test = Add(2 * Identity((2,)), 3 * Identity((2,))).to(device)
     # test dims_in
     assert test.dims_in == (2,)
@@ -440,10 +424,8 @@ def test_Flatten() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the Flatten
     test = Flatten((2, 3)).to(device)
     # test dims_in
@@ -488,10 +470,8 @@ def test_Unflatten() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the Unflatten
     test = Unflatten((2, 3)).to(device)
     # test dims_in
@@ -535,17 +515,15 @@ def test_Composition() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the Composition
     try:
         Composition((Identity((2,)), Identity((3,))))
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The input and output dimensions of the "
-                              + "composed functions do not match.")
+                              + "composed functions do not match")
     test = Composition((2 * Identity((2,)), 3 * Identity((2,)))).to(device)
     # test dims_in
     assert test.dims_in == (2,)
@@ -587,14 +565,8 @@ def test_MatrixMult() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
     # instantiate MatrixMult
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    device = config(64, 0)
     try:
         func1 = Composition((Identity((12,)), Unflatten((4, 3))))
         func2 = Composition((Identity((9,)), Unflatten((3, 3))))
@@ -602,7 +574,7 @@ def test_MatrixMult() -> None:
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The input dimensions of the parameterized "
-                              + "functions are not the same.")
+                              + "functions are not the same")
     try:
         func1 = Composition((Identity((12,)), Unflatten((4, 3))))
         func2 = Composition((Identity((12,)), Unflatten((4, 3))))
@@ -610,21 +582,21 @@ def test_MatrixMult() -> None:
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The output dimensions of the parameterized "
-                              + "functions are not compatible.")
+                              + "functions are not compatible")
     try:
         func1 = Composition((Identity((12,)), Unflatten((4, 3))))
         func2 = Composition((Identity((12,)), Unflatten((3, 2, 2))))
         MatrixMult(func1, func2)
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
-        assert str(error) == ("The second function does not have a 2D output.")
+        assert str(error) == ("The second function does not have a 2D output")
     try:
         func1 = Composition((Identity((12,)), Unflatten((2, 2, 3))))
         func2 = Composition((Identity((12,)), Unflatten((3, 4))))
         MatrixMult(func1, func2)
         raise NotImplementedError("Test not implemented")
     except ValueError as error:
-        assert str(error) == ("The first function has greater than 2D output.")
+        assert str(error) == ("The first function has greater than 2D output")
     func1 = Composition((Identity((12,)), Unflatten((4, 3))))
     func2 = Composition((Identity((12,)), Unflatten((3, 4))))
     test = MatrixMult(func1, func2).to(device)
@@ -682,9 +654,7 @@ def test_MatrixMult() -> None:
     y = test.forward(x)
     y.sum().backward()
     # test __matmul__()
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     func1 = Composition((Identity((12,)), Unflatten((4, 3))))
     func2 = Composition((Identity((12,)), Unflatten((3, 4))))
     test4 = (func1 @ func2).to(device)
@@ -726,10 +696,8 @@ def test_Polynomial() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the Polynomial
     dim_in = 2
     dim_out = 3
@@ -737,17 +705,17 @@ def test_Polynomial() -> None:
     coefficients = polynomial_init_uniform(dim_in, dim_out, 1.0, degrees)
     try:
         Polynomial(dim_in, dim_out, degrees[:-1], coefficients)
-        raise NotImplementedError("Test not implemented.")
+        raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The number of polynomial degrees and "
-                              + "coefficients do not match.")
+                              + "coefficients do not match")
     try:
         coefficients = (coefficients[0], coefficients[1], coefficients[2][1:])
         Polynomial(dim_in, dim_out, degrees, coefficients)
-        raise NotImplementedError("Test not implemented.")
+        raise NotImplementedError("Test not implemented")
     except ValueError as error:
         assert str(error) == ("The coefficient tensor is not the right "
-                              + "shape.")
+                              + "shape")
     coefficients = polynomial_init_uniform(dim_in, dim_out, 1.0, degrees)
     test = Polynomial(dim_in, dim_out, degrees, coefficients).to(device)
     # test dims_in
@@ -807,23 +775,17 @@ def test_Affine() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
     # instantiate the Affine with a bias
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    device = config(64, 0)
     b_T, A_T = affine_init_torch(2, 3)
     test1 = Affine(2, 3, b_T, A_T).to(device)
     test2 = Affine(2, 3, None, A_T).to(device)
     test3 = Affine(2, 3, b_T, None).to(device)
     try:
         Affine(2, 3, None, None)
-        raise NotImplementedError("Test not implemented.")
+        raise NotImplementedError("Test not implemented")
     except ValueError as error:
-        assert str(error) == ("The bias and matrix cannot both be None.")
+        assert str(error) == ("The bias and matrix cannot both be None")
     # test dims_in
     assert test1.dims_in == (2,)
     assert test2.dims_in == (2,)
@@ -844,14 +806,10 @@ def test_Affine() -> None:
     # test forward()
     x = tensor([[1., 2.],
                 [3., 4.]], device=device)
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     torchlinear = TorchLinear(2, 3).to(device)
     assert test1.forward(x).allclose(torchlinear(x), atol=0.0)
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     torchlinear = TorchLinear(2, 3, bias=False).to(device)
     assert test2.forward(x).allclose(torchlinear(x), atol=0.0)
     desired = stack((b_T[0], b_T[0]))
@@ -879,10 +837,8 @@ def test_GELU() -> None:
     References
         None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the GELU class
     test = GELU((2,)).to(device)
     # test dim_in
@@ -921,10 +877,8 @@ def test_Sigmoid() -> None:
     References
         None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate the GELU class
     test = Sigmoid((2,)).to(device)
     # test dim_in
@@ -963,19 +917,14 @@ def test_FullyConnMLP() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
     # instantiate the FullyConnMLP
+    device = config(64, 0)
     try:
         FullyConnMLP((2, 3), (10, 10), (3, 3), type='unknown')
-        raise NotImplementedError("Test not implemented.")
+        raise NotImplementedError("Test not implemented")
     except ValueError as error:
-        assert str(error) == ("The M.L.P. type is unknown.")
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+        assert str(error) == ("The M.L.P. type is unknown")
+    config(64, 0)
     test1 = FullyConnMLP((2, 3), (10, 10), (3, 3),
                          type='gelu_torch').to(device)
     test2 = FullyConnMLP((2, 3), (10, 10), (3, 3),
@@ -1036,9 +985,7 @@ def test_FullyConnMLP() -> None:
     assert test1.layers.funcs[6].dims_out == (3, 3)
     assert test2.layers.funcs[6].dims_out == (3, 3)
     # test forward()
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     linear1 = TorchLinear(6, 10).to(device)
     linear2 = TorchLinear(10, 10).to(device)
     linear3 = TorchLinear(10, 9, bias=False).to(device)

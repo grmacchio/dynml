@@ -7,11 +7,11 @@ This module tests the dynml.dyn.discrete.system module.
 # import built-in python-package code
 from typing import Tuple
 # import external python-package code
-from torch import float64, ones, set_default_dtype, Tensor, zeros
-from torch.cuda import is_available
+from torch import ones, Tensor, zeros
 from torch.nn import Parameter
 # import internal python-package code
 from dynml.dyn.discrete.system import DiscreteSystem
+from dynml.utils.config import config
 
 
 # test the DiscreteSystem class
@@ -109,10 +109,8 @@ def test_DiscreteSystem() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find the device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # initialize DiscreteSystemExample
     dims_state = (4, 3)
     test = DiscreteSystemExample(dims_state).to(device)

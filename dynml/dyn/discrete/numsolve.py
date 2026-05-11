@@ -60,16 +60,16 @@ def gen_num_trajs(discrete_sys: DiscreteSystem,  # noqa: C901
     """
     # check if the compute and output devices are recognized
     if compute not in ['cpu', 'cuda'] and 'cuda' not in compute:
-        raise ValueError("The compute device is not recognized.")
+        raise ValueError("The compute device is not recognized")
     if output not in ['cpu', 'cuda'] and 'cuda' not in output:
-        raise ValueError("The output device is not recognized.")
+        raise ValueError("The output device is not recognized")
     # check if the discrete system's number of states matches the initial
     # condition's number of states
     first_ic = gen_ic()
     dims_state = tuple(first_ic.shape)
     if dims_state != discrete_sys.dims_state:
         raise ValueError("The initial condition's state dimensions does "
-                         "not match the discrete system's state dimensions.")
+                         "not match the discrete system's state dimensions")
     # initialize the numerical trajectories storage tensor
     traj = zeros((num_traj, num_samples) + dims_state, dtype=first_ic.dtype,
                  device=output)

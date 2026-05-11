@@ -7,18 +7,10 @@ This module tests the ``dynml.ml.pkl`` module.
 # import built-in python-package code
 from os import remove
 # import external python-package code
-from torch import float64, set_default_device, set_default_dtype
-from torch.cuda import is_available
+# None
 # import internal python-package code
 from dynml.ml.pkl import load, save
-
-
-# set torch to float64
-set_default_dtype(float64)
-
-
-# set the device
-set_default_device('cuda' if is_available() else 'cpu')
+from dynml.utils.config import config
 
 
 # test the both the load and save methods
@@ -87,6 +79,8 @@ def test_load_save() -> None:
     | **References**
     |   None
     """
+    # configure the test
+    config(64, 0)
     # test code for load()
     # create an instance of ClassExample
     test = ClassExample()

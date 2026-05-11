@@ -7,11 +7,11 @@ This module tests the ``dynml.ml.dimred`` module.
 # import built-in python-package code
 # None
 # import external python-package code
-from torch import float64, randn, set_default_dtype, tensor
-from torch.cuda import is_available
+from torch import randn, tensor
 # import internal python-package code
 from dynml.ml.paramfunc import Affine
 from dynml.ml.dimred import local_pca, DimRed, DimRedComposition
+from dynml.utils.config import config
 
 
 # test local_pod()
@@ -36,10 +36,13 @@ def test_local_pod() -> None:
     | **References**
     |   None
     """
+    # configure the test
+    device = config(64, 0)
     # sample data set
-    X = tensor([[0.5, 0.0], [-0.5, 0.0], [0.0, 10.0], [0.0, -10.0]])
+    X = tensor([[0.5, 0.0], [-0.5, 0.0], [0.0, 10.0], [0.0, -10.0]],
+               device=device)
     # test local_pod()
-    center = tensor([0.0, 0.0])
+    center = tensor([0.0, 0.0], device=device)
     r = 1.0
     Phi_T, _ = local_pca(X, center, r)
     # project data set onto dominant singular vector
@@ -68,10 +71,8 @@ def test_DimRed() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate DimRed
     enc = Affine(2, 1, randn((1, 1)), randn((2, 1)))
     dec = Affine(1, 2, randn((1, 2)), randn((1, 2)))
@@ -118,10 +119,8 @@ def test_DimRedComposition() -> None:
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
-    # find device
-    device = 'cuda' if is_available() else 'cpu'
+    # configure the test
+    device = config(64, 0)
     # instantiate DimRedComposition
     enc1 = Affine(3, 2, randn((1, 2)), randn((3, 2)))
     dec1 = Affine(2, 3, randn((1, 3)), randn((2, 3)))

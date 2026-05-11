@@ -1,7 +1,6 @@
-"""Define some parameterized function initializations and representations.
+"""Define all parameterized function related code.
 
-This module defines some parameterized function initializations and
-representations.
+This module defines all parameterized function related code.
 """
 
 
@@ -45,6 +44,7 @@ def affine_init_torch(dim_in: int, dim_out: int) -> Tuple[Tensor, Tensor]:
     |   ``Tuple[Tensor, Tensor]``: the PyTorch initialized affine bias with
             shape ``(1, dim_out)`` and affine matrix with shape
             ``(dim_in, dim_out)``
+
     | **Raises**
     |   None
 
@@ -561,7 +561,7 @@ class Add(ParamFunc):
         cond2 = (func1.dims_out != func2.dims_out)
         if (cond1 or cond2):
             raise ValueError("The input and output dimensions of the "
-                             + "parameterized functions do not match.")
+                             + "parameterized functions do not match")
         # set the parameterized functions
         self.func1 = func1
         self.func2 = func2
@@ -838,7 +838,7 @@ class Composition(ParamFunc):
         for func in funcs:
             if dims_out != func.dims_in:
                 raise ValueError("The input and output dimensions of the "
-                                 + "composed functions do not match.")
+                                 + "composed functions do not match")
             dims_out = func.dims_out
         # set the tuple of composed functions
         self.funcs = ModuleList(funcs)
@@ -944,17 +944,17 @@ class MatrixMult(ParamFunc):
         # check the input dimensions of the parameterized functions
         if (func1.dims_in != func2.dims_in):
             raise ValueError("The input dimensions of the parameterized "
-                             + "functions are not the same.")
+                             + "functions are not the same")
         # check the input and output dimensions of the parameterized functions
         if (func1.dims_out[-1] != func2.dims_out[-len(func2.dims_out)]):
             raise ValueError("The output dimensions of the parameterized "
-                             + "functions are not compatible.")
+                             + "functions are not compatible")
         # check the second function has a 2D output
         if len(func2.dims_out) != 2:
-            raise ValueError("The second function does not have a 2D output.")
+            raise ValueError("The second function does not have a 2D output")
         # check the first function has greater than 2D output
         if len(func1.dims_out) > 2:
-            raise ValueError("The first function has greater than 2D output.")
+            raise ValueError("The first function has greater than 2D output")
         # set the parameterized functions
         self.func1 = func1
         self.func2 = func2
@@ -1052,7 +1052,7 @@ class Polynomial(ParamFunc):
         # check the number of polynomial degrees and coefficients match
         if len(degrees) != len(coefficients):
             raise ValueError("The number of polynomial degrees and "
-                             + "coefficients do not match.")
+                             + "coefficients do not match")
         # check the coefficient tensors are the right shape
         self._powers_list: List[Tuple[Tuple[int, ...], ...]] = []
         for degree, coefficient in zip(degrees, coefficients):
@@ -1061,7 +1061,7 @@ class Polynomial(ParamFunc):
             num_powers = len(powers)
             if coefficient.shape != (num_powers, dim_out):
                 raise ValueError("The coefficient tensor is not the right "
-                                 + "shape.")
+                                 + "shape")
         # set dimension attributes
         self._dim_in = dim_in
         self._dim_out = dim_out
@@ -1169,7 +1169,7 @@ class Affine(Polynomial):
             super().__init__(dim_in, dim_out, (0,), (b_T,))
             self._forward = self._forward_b
         elif (A_T is None) and (b_T is None):
-            raise ValueError("The bias and matrix cannot both be None.")
+            raise ValueError("The bias and matrix cannot both be None")
 
     def forward(self, x: Tensor) -> Tensor:
         """Return the affine transformation's output.
@@ -1479,7 +1479,7 @@ class FullyConnMLP(ParamFunc):
             activ = FullyConnMLP.TYPES[type][0]
             init = FullyConnMLP.TYPES[type][1]
         else:
-            raise ValueError("The M.L.P. type is unknown.")
+            raise ValueError("The M.L.P. type is unknown")
         layers_list: List[ParamFunc] = list()
         layers_list.append(Flatten(self.dims_in))
         layers_list.append(Affine(prod(self.dims_in), dims_hidden[0],

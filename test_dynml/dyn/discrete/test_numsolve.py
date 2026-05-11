@@ -4,16 +4,14 @@ This module tests the dynml.dyn.discrete.numsolve module.
 """
 
 # import built-in python-package code
-from random import seed as python_seed
 from math import prod
 # import external python-package code
-from torch import float64, mean, no_grad, ones_like, randn, set_default_dtype
+from torch import mean, no_grad, ones_like, randn
 from torch import stack, Tensor
-from torch import manual_seed as torch_manual_seed
 from torch.cuda import is_available, mem_get_info
-from torch.cuda import manual_seed as cuda_manual_seed
 # import internal python-package code
 from dynml.dyn.discrete.numsolve import gen_num_trajs
+from dynml.utils.config import config
 from test_dynml.dyn.discrete.test_system import DiscreteSystemExample
 
 
@@ -45,9 +43,8 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     | **References**
     |   None
     """
-    # set torch to float64
-    set_default_dtype(float64)
     # test that an error is raised when the compute device is not recognized
+    config(64, 0)
     try:
         dims_state = (4, 3)
         num_traj = 4
@@ -58,8 +55,9 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         gen_num_trajs(ds, gen_ic_1, num_traj, num_samples, compute='unknown')
         raise NotImplementedError("Test not implemented")
     except ValueError as exc:
-        assert str(exc) == "The compute device is not recognized."
+        assert str(exc) == "The compute device is not recognized"
     # test that an error is raised when the output device is not recognized
+    config(64, 0)
     try:
         dims_state = (4, 3)
         num_traj = 4
@@ -70,9 +68,10 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         gen_num_trajs(ds, gen_ic_2, num_traj, num_samples, output='unknown')
         raise NotImplementedError("Test not implemented")
     except ValueError as exc:
-        assert str(exc) == "The output device is not recognized."
+        assert str(exc) == "The output device is not recognized"
     # test that an error is raised when the initial condition's number of
     # states does not match the discrete system's number of states
+    config(64, 0)
     try:
         dims_state = (4, 3)
         num_traj = 4
@@ -85,12 +84,10 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     except ValueError as exc:
         assert str(exc) == ("The initial condition's state dimensions does "
                             + "not match the discrete system's state "
-                            + "dimensions.")
+                            + "dimensions")
     # test gen_num_trajs() computing on C.P.U. and output to the C.P.U. and
     # backwards differentiation with respect to gen_num_trajs() output
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     dims_state = (4, 3)
     num_traj = 4
     num_samples = 4
@@ -103,9 +100,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
                          compute=compute, output=output, pbar=False)
     assert test.device.type == output
     assert tuple(test.shape) == (num_traj, num_samples) + dims_state
-    python_seed(0)
-    torch_manual_seed(0)
-    cuda_manual_seed(0)
+    config(64, 0)
     desired = stack(tuple(gen_ic() for _ in range(num_traj)), dim=0).to(output)
     for k in range(num_samples):
         assert test[:, k].allclose(desired, atol=0.0)
@@ -113,9 +108,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     mean(test - ones_like(test, device=output)).backward()
     # test gen_num_trajs() computing on G.P.U. and output to the G.P.U.
     if is_available():
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
@@ -128,9 +121,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
         assert tuple(test.shape) == (num_traj, num_samples) + dims_state
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
@@ -140,9 +131,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         mean(test - input).backward()
     # test gen_num_trajs() computing on G.P.U. and output to the C.P.U.
     if is_available():
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         dims_state = (4, 3)
         num_states = 4
         num_samples = 4
@@ -155,9 +144,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
         assert tuple(test.shape) == (num_traj, num_samples) + dims_state
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
@@ -167,9 +154,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         mean(test - input).backward()
     # test gen_num_trajs() computing on C.P.U. and output to the G.P.U.
     if is_available():
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         dims_state = (4, 3)
         num_states = 4
         num_samples = 4
@@ -182,9 +167,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
                              compute=compute, output=output, pbar=False)
         assert test.device.type == output
         assert tuple(test.shape) == (num_traj, num_samples) + dims_state
-        python_seed(0)
-        torch_manual_seed(0)
-        cuda_manual_seed(0)
+        config(64, 0)
         desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                         dim=0).to(output)
         for k in range(num_samples):
@@ -205,18 +188,14 @@ def test_gen_num_trajs() -> None:  # noqa: C901
             compute = 'cuda'
             output = 'cpu'
             ds = DiscreteSystemExample(dims_state)
-            python_seed(0)
-            torch_manual_seed(0)
-            cuda_manual_seed(0)
+            config(64, 0)
             def gen_ic() -> Tensor:  # noqa: E306
                 return randn(dims_state)
             test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
                                  compute=compute, output=output, pbar=False)
             assert test.device.type == output
             assert tuple(test.shape) == (num_traj, num_samples) + dims_state
-            python_seed(0)
-            torch_manual_seed(0)
-            cuda_manual_seed(0)
+            config(64, 0)
             desired = stack(tuple(gen_ic() for _ in range(num_traj)),
                             dim=0).to(output)
             for k in range(num_samples):

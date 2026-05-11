@@ -1,7 +1,6 @@
-"""Define a saving and loading method for objects saved using ``pickle``.
+"""Define all object saving/loading related code using ``pickle``.
 
-This module defines a saving and loading method for objects saved using
-``pickle``.
+This module defines all object saving/loading related code using ``pickle``.
 """
 
 
