@@ -49,7 +49,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic_1() -> Tensor:  # noqa: E306
             return randn(num_states,)
         gen_num_trajs(ds, gen_ic_1, num_traj, num_samples, compute='unknown')
@@ -62,7 +62,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic_2() -> Tensor:  # noqa: E306
             return randn(num_states,)
         gen_num_trajs(ds, gen_ic_2, num_traj, num_samples, output='unknown')
@@ -76,7 +76,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         dims_state = (4, 3)
         num_traj = 4
         num_samples = 4
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic_incorrect() -> Tensor:  # noqa: E306
             return randn((4, 2))
         gen_num_trajs(ds, gen_ic_incorrect, num_traj, num_samples)
@@ -93,7 +93,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
     num_samples = 4
     compute = 'cpu'
     output = 'cpu'
-    ds = DiscreteSystemExample(dims_state)
+    ds = DiscreteSystemExample(dims_state, True)
     def gen_ic() -> Tensor:  # noqa: E306
         return randn(dims_state,)
     test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
@@ -114,7 +114,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         num_samples = 4
         compute = 'cuda'
         output = 'cuda'
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic() -> Tensor:  # noqa: E306
             return randn(dims_state)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
@@ -137,7 +137,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         num_samples = 4
         compute = 'cuda'
         output = 'cpu'
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic() -> Tensor:  # noqa: E306
             return randn(num_states,)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
@@ -160,7 +160,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
         num_samples = 4
         compute = 'cpu'
         output = 'cuda'
-        ds = DiscreteSystemExample(dims_state)
+        ds = DiscreteSystemExample(dims_state, True)
         def gen_ic() -> Tensor:  # noqa: E306
             return randn(dims_state)
         test = gen_num_trajs(ds, gen_ic, num_traj, num_samples,
@@ -187,7 +187,7 @@ def test_gen_num_trajs() -> None:  # noqa: C901
             num_samples = int(1.25 * tot_mem / mem_per_sample)
             compute = 'cuda'
             output = 'cpu'
-            ds = DiscreteSystemExample(dims_state)
+            ds = DiscreteSystemExample(dims_state, True)
             config(64, 0)
             def gen_ic() -> Tensor:  # noqa: E306
                 return randn(dims_state)

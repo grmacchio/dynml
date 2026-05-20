@@ -28,7 +28,7 @@ def config(b: int, s: int) -> str:
 
     | **Args**
     |   ``b`` (``int``): the numerical data type precision in bits, which can
-    |   be either ``16``, ``32``, or ``64``.
+            be either ``16``, ``32``, or ``64``.
     |   ``s`` (``int``): the random seed
 
     | **Return**

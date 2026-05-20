@@ -53,10 +53,12 @@ class DiscreteSystemExample(DiscreteSystem):
         This method returns the input plus one.
 
         | **Args**
-        |   ``x`` (``Tensor``): the input with shape ``(...,) + (4,)``
+        |   ``x`` (``Tensor``): the input with shape ``(...,) +
+                self.dims_state``
 
         | **Return**
-        |   ``Tensor``: the input plus one with shape ``(...,) + (4,)``
+        |   ``Tensor``: the input plus one with shape ``(...,) +
+                self.dims_state``
 
         | **Raises**
         |   None
@@ -64,15 +66,16 @@ class DiscreteSystemExample(DiscreteSystem):
         | **References**
         |   None
         """
-        return x + self.ones
+        return self._map(x)
 
-    def __init__(self, dims_state: Tuple[int, ...]) -> None:
+    def __init__(self, dims_state: Tuple[int, ...], params: bool) -> None:
         """Initialize the superclass and the attributes.
 
         This method initializes the superclass and the attributes.
 
         | **Args**
-        |   None
+        |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
+        |   ``params`` (``bool``): the parameters boolean
 
         | **Return**
         |   None
@@ -87,7 +90,12 @@ class DiscreteSystemExample(DiscreteSystem):
         super().__init__()
         # initialize the attributes
         self._dims_state = dims_state
-        self.ones = Parameter(ones(self._dims_state))
+        if params:
+            self._ones_param: Parameter = Parameter(ones(self._dims_state))
+            self._map = lambda x: x + self._ones_param
+        else:
+            self._ones_tensor: Tensor = ones(self._dims_state)
+            self._map = lambda x: x + self._ones_tensor
 
 
 def test_DiscreteSystem() -> None:
@@ -113,7 +121,7 @@ def test_DiscreteSystem() -> None:
     device = config(64, 0)
     # initialize DiscreteSystemExample
     dims_state = (4, 3)
-    test = DiscreteSystemExample(dims_state).to(device)
+    test = DiscreteSystemExample(dims_state, False).to(device)
     # test num_states
     assert test.dims_state == dims_state
     # test map

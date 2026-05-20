@@ -8,8 +8,8 @@ This module defines the discrete dynamical system representation.
 from abc import ABC, abstractmethod
 from typing import Tuple
 # import external python-package code
-from torch import Tensor
-from torch.nn import Module
+from torch import Tensor, zeros
+from torch.nn import Module, Parameter
 # import internal python-package code
 # None
 
@@ -93,3 +93,5 @@ class DiscreteSystem(ABC, Module):
         """
         # initialize the superclass
         super().__init__()
+        # initialize a hidden attribute for device storage
+        self._device = Parameter(zeros(1), requires_grad=False)

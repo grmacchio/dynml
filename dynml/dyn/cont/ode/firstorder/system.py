@@ -8,8 +8,8 @@ This module defines some first-order O.D.E. dynamical-system representations.
 from abc import ABC, abstractmethod
 from typing import Tuple
 # import external python-package code
-from torch import Tensor
-from torch.nn import Module
+from torch import Tensor, zeros
+from torch.nn import Module, Parameter
 # import internal python-package code
 # None
 
@@ -95,6 +95,8 @@ class FirstOrderSystem(ABC, Module):
         """
         # call the superclass constructors
         super().__init__()
+        # initialize a hidden attribute for device storage
+        self._device = Parameter(zeros(1), requires_grad=False)
 
 
 class SemiLinearFirstOrderSystem(FirstOrderSystem):
