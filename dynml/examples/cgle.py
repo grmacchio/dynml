@@ -87,7 +87,7 @@ class CGLE(SemiLinearFirstOrderSystem):
     where :math:`m \\in [-K : K]` is the frequency index and
     :math:`n \\in [0 : 2K]` is the collocation point index [3]. When using the
     discrete fourier transform we account for aliasing by using the
-    :math:`3/2` rule [3]. The final system takes the form,
+    :math:`2 \\times` rule [3]. The final system takes the form,
 
     .. math::
         \\begin{align*}
@@ -205,7 +205,7 @@ class CGLE(SemiLinearFirstOrderSystem):
         self.L = L
         self.beta = beta_r + 1j * beta_i
         self.gamma = gamma_r + 1j * gamma_i
-        self._K_prime = 3 * K // 2
+        self._K_prime = 2 * K
         self._N_prime = 2 * self._K_prime + 1
         k = cat((arange(0, K + 1), arange(-K, 0)))
         diagonal = self.alpha - self.beta * (2 * pi * k / self.L)**2

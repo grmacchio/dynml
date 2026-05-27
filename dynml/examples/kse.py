@@ -122,8 +122,8 @@ class KSE(SemiLinearFirstOrderSystem):
     where :math:`m \\in [-K : K]` is the frequency index and
     :math:`n \\in [0 : 2K]` is the collocation point index [1]. When using the
     discrete fourier transform we account for aliasing by
-    using the :math:`3/2` rule [1]. Finally, we represent this system as
-    smaller system of ordinary differential equations by removing any
+    using the :math:`3/2 \\times` rule [1]. Finally, we represent this system
+    as smaller system of ordinary differential equations by removing any
     extraneous states in :math:`(V_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
     the Hermitian symmetry condition of real-valued signals and by removing
     the known state :math:`V_0(\\:\\cdot_{t}) = 0`. The final system is
