@@ -13,6 +13,7 @@ examples
     burgers
     cgle
     cylinder
+    grayscott
     kse
     line
     parabola

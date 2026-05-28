@@ -19,7 +19,7 @@ from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
 __all__ = ['Paraboloid']
 
 
-# argument parser choice dictionaries
+# define the dynamical system
 class Paraboloid(SemiLinearFirstOrderSystem):
     """Represent a system with a paraboloid slow manifold.
 

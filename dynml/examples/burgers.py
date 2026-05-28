@@ -48,8 +48,8 @@ class Burgers(SemiLinearFirstOrderSystem):
 
     By substituting this expression into the P.D.E. and projecting using the
     the :math:`1/L` forward-normalized Fourier transform
-    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write
-    the Burgers' equation as a system of complex-valued ordinary differential
+    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write discretized
+    Burgers' equation as a system of complex-valued ordinary differential
     equations:
 
     .. math::
@@ -65,7 +65,8 @@ class Burgers(SemiLinearFirstOrderSystem):
 
     .. math::
         \\begin{align*}
-            \\mathcal{F}_{k}\\left(\\partial u / \\partial x \\: u\\right)
+            \\mathcal{F}_{k}
+            \\left(\\frac{\\partial u}{\\partial x} \\: u\\right)
             \\approx
             \\mathcal{D}_{k}
             \\left[
@@ -123,8 +124,6 @@ class Burgers(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
-    |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with a default
             value of ``512``
     |   ``L`` (``float``): the length of the domain :math:`L` with a default
@@ -132,6 +131,8 @@ class Burgers(SemiLinearFirstOrderSystem):
     |   ``nu`` (``float``): the viscosity :math:`\\nu` with a default value
             of ``0.01``
     |   ``N`` (``int``): the number of collocation points :math:`2K + 1`
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
+    |   ``A`` (``Tensor``): the matrix :math:`A`
 
     | **Abstract Methods**
     |   None
@@ -142,11 +143,11 @@ class Burgers(SemiLinearFirstOrderSystem):
     | **Methods**
     |   ``__init__()``: initialize the superclass and model parameters
     |   ``nonlinear()``: return :math:`F(\\vec{x})`
-    |   ``state_to_phys()``: return the physical state given the state
-    |   ``phys_to_state()``: return the state given the physical state
+    |   ``rhs()``: return :math:`f(\\vec{x})`
     |   ``gen_ic()``: Return an I.C. where
             :math:`\\|\\vec{x}_{\\mathbb{R}}\\|_2 \\sim U[[0, 1)]`
-    |   ``rhs()``: return :math:`f(\\vec{x})`
+    |   ``state_to_phys()``: return the physical state given the state
+    |   ``phys_to_state()``: return the state given the physical state
 
     | **References**
     |   [1] Peyret, Roger. Spectral methods for incompressible viscous flow.

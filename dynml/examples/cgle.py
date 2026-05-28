@@ -21,6 +21,7 @@ from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
 __all__ = ['CGLE']
 
 
+# define the dynamical system
 class CGLE(SemiLinearFirstOrderSystem):
     """Represent the discretized complex Ginzburg-Landau dynamical system with
     periodic boundary conditions.
@@ -39,7 +40,7 @@ class CGLE(SemiLinearFirstOrderSystem):
     where :math:`u(t, x), \\alpha, \\beta, \\gamma \\in \\mathbb{C}`,
     :math:`t \\in \\mathbb{R}`, and :math:`x \\in [0, L]`. In order to obtain a
     first-order O.D.E. system, we orthogonally project this P.D.E. onto the
-    space of complex Fourier modes where solutions :math:`u` take the form,
+    space of complex Fourier modes where solutions :math:`u` take the form
 
     .. math::
         \\begin{align*}
@@ -49,8 +50,8 @@ class CGLE(SemiLinearFirstOrderSystem):
 
     By substituting this expression into the P.D.E. and projecting using the
     the :math:`1 / L` forward-normalized Fourier transform
-    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write
-    the complex Ginzburg-Landau equation as a system of complex-valued ordinary
+    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write the discretized
+    complex Ginzburg-Landau equation as a system of complex-valued ordinary
     differential equations:
 
     .. math::
@@ -111,20 +112,25 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
-    |   ``A`` (``Tensor``): the matrix :math:`A`
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value of ``256``
-    |   ``N`` (``int``): the number of collocation points :math:`N = 2K + 1`
-    |   ``alpha`` (``float``): the value of the parameter
-            :math:`\\alpha = \\alpha_r + i \\alpha_i` with default value
-            of ``1.0 + 0.0j``
     |   ``L`` (``float``): the value of the parameter :math:`L` with default
             value of ``10.0``
-    |   ``beta`` (``complex``): the value of the parameter
-            :math:`\\beta` with default value of ``1.0 + 1.0j``
-    |   ``gamma`` (``complex``): the value of the parameter
-            :math:`\\gamma` with default value of ``-1.0 - 2.0j``
+    |   ``alpha_r`` (``float``): the real part of the parameter
+            :math:`\\alpha` with a default value of ``1.0``
+    |   ``alpha_i`` (``float``): the imaginary part of the parameter
+            :math:`\\alpha` with a default value of ``0.0``
+    |   ``beta_r`` (``float``): the real part of the parameter
+            :math:`\\beta` with a default value of ``1.0``
+    |   ``beta_i`` (``float``): the imaginary part of the parameter
+            :math:`\\beta` with a default value of ``1.0``
+    |   ``gamma_r`` (``float``): the real part of the parameter
+            :math:`\\gamma` with a default value of ``-1.0``
+    |   ``gamma_i`` (``float``): the imaginary part of the parameter
+            :math:`\\gamma` with a default value of ``-2.0``
+    |   ``N`` (``int``): the number of collocation points :math:`N = 2K + 1`
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
+    |   ``A`` (``Tensor``): the matrix :math:`A`
 
     | **Abstract Methods**
     |   None
@@ -138,6 +144,8 @@ class CGLE(SemiLinearFirstOrderSystem):
     |   ``rhs()``: return :math:`f(\\vec{x})`
     |   ``gen_ic()``: return an I.C. where
             :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`
+    |   ``state_to_phys()``: return the physical state given the state
+    |   ``phys_to_state()``: return the state given the physical state
 
     | **References**
     |   [1] 1988 - Doering - Low-Dimensional Behavior In the Complex

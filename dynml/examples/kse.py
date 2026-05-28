@@ -20,7 +20,7 @@ from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
 __all__ = ['KSE']
 
 
-# argument parser choice dictionaries
+# define the dynamical system
 class KSE(SemiLinearFirstOrderSystem):
     """Represent the discretized Kuramoto-Sivashinsky dynamical system with
     periodic boundary conditions.
@@ -50,8 +50,8 @@ class KSE(SemiLinearFirstOrderSystem):
 
     By substituting this expression into the P.D.E. and projecting using the
     the :math:`1/L` forward-normalized Fourier transform
-    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write
-    the K.S.E. as a system of complex-valued ordinary differential equations:
+    :math:`\\mathcal{F}_{k}` on :math:`[0, L]`, we can write the discretized
+    K.S.E. as a system of complex-valued ordinary differential equations:
 
     .. math::
         \\begin{align*}
@@ -123,7 +123,7 @@ class KSE(SemiLinearFirstOrderSystem):
     :math:`n \\in [0 : 2K]` is the collocation point index [1]. When using the
     discrete fourier transform we account for aliasing by
     using the :math:`3/2 \\times` rule [1]. Finally, we represent this system
-    as smaller system of ordinary differential equations by removing any
+    as a smaller system of ordinary differential equations by removing any
     extraneous states in :math:`(V_{k}(\\:\\cdot_{t}))_{k\\in [-K, K]}` using
     the Hermitian symmetry condition of real-valued signals and by removing
     the known state :math:`V_0(\\:\\cdot_{t}) = 0`. The final system is
@@ -149,12 +149,12 @@ class KSE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Attributes**
-    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``K`` (``int``): the number of Fourier modes :math:`K` with default
             value ``32``
     |   ``L`` (``float``): the length of the domain :math:`L` with a default
             value ``11.0``
     |   ``N`` (``int``): the number of collocation points :math:`2K + 1`
+    |   ``dims_state`` (``Tuple[int, ...]``): the state dimensions
     |   ``A`` (``Tensor``): the matrix :math:`A`
 
     | **Abstract Methods**
@@ -164,13 +164,13 @@ class KSE(SemiLinearFirstOrderSystem):
     |   None
 
     | **Methods**
-    |   ``nonlinear()``: return :math:`F(\\vec{x})`
     |   ``__init__()``: initialize the superclass and model parameters
+    |   ``nonlinear()``: return :math:`F(\\vec{x})`
+    |   ``rhs()``: return :math:`f(\\vec{x})`
+    |   ``gen_ic()``: Return an I.C. where
+            :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`
     |   ``state_to_phys()``: return the physical state given the state
     |   ``phys_to_state()``: return the state given the physical state
-    |   ``gen_ic()``: Return an I.C. where
-        :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`
-    |   ``rhs()``: return :math:`f(\\vec{x})`
 
     | **References**
     |   [1] Peyret, Roger. Spectral methods for incompressible viscous flow.
@@ -214,7 +214,7 @@ class KSE(SemiLinearFirstOrderSystem):
         self._K_prime = 3 * self.K // 2
         self._N_prime = 2 * self._K_prime + 1
         k = cat((arange(1, self.K + 1), arange(1, self.K + 1)))
-        ksq = (2 * pi / L) ** 2 * k**2
+        ksq = (2 * pi / L)**2 * k**2
         self._A = Parameter(diag(ksq * (1 - ksq)), requires_grad=False)
         k = arange(0, self.K + 1)
         self._freq_deriv = Parameter((2j * pi / L) * k, requires_grad=False)
@@ -239,14 +239,16 @@ class KSE(SemiLinearFirstOrderSystem):
         |   [1] Peyret, Roger. Spectral methods for incompressible viscous
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
-        # represent the state in frequency space
+        # convert to collocation space
         V = zeros(x.shape[:-1] + (1 + self.K,),
                   device=next(self.parameters()).device.type) + 1j * 0.0
         V[..., 1:] = x[..., :self.K] + 1j * x[..., self.K:]
         v = self._dealiased_irfft(V)
+        # compute in collocation space
         v_x = self._dealiased_irfft(V * self._freq_deriv)
-        V_dot = -1 * self._dealiased_rfft(v * v_x)
-        return cat((V_dot[..., 1:].real, V_dot[..., 1:].imag), dim=-1)
+        output = -1 * self._dealiased_rfft(v * v_x)
+        # convert to frequency space
+        return cat((output[..., 1:].real, output[..., 1:].imag), dim=-1)
 
     def state_to_phys(self, x: Tensor) -> Tensor:
         """Return the physical state given the state.
@@ -298,7 +300,7 @@ class KSE(SemiLinearFirstOrderSystem):
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
 
         This method returns an I.C. where
-        :math:`\\|\\vec{x\\|_2 \\sim U[[0, 1)]`. In particular,
+        :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`. In particular,
         an initial condition is sampled in the following way: First,
         :math:`\\vec{u} \\sim U[\\mathcal{S}^{2 K - 1}]`. Second,
         :math:`r\\sim U[[0, 1)]`. Finally, the sample
@@ -324,12 +326,12 @@ class KSE(SemiLinearFirstOrderSystem):
         return radius * direction
 
     def _dealiased_irfft(self, V: Tensor) -> Tensor:
-        U_pad = cat((V[..., :self.K + 1],
+        V_pad = cat((V[..., :self.K + 1],
                      zeros(V.shape[:-1] + (self._K_prime - self.K,),
                            dtype=V.dtype,
                            device=next(self.parameters()).device.type)),
                     dim=-1)
-        return irfft(U_pad, n=self._N_prime, norm='forward')
+        return irfft(V_pad, n=self._N_prime, norm='forward')
 
     def _dealiased_rfft(self, v: Tensor) -> Tensor:
         return rfft(v, n=self._N_prime, norm='forward')[..., :self.K + 1]

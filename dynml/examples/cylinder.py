@@ -19,7 +19,7 @@ from dynml.dyn.discrete.system import DiscreteSystem
 __all__ = ['Cylinder']
 
 
-# argument parser choice dictionaries
+# define the dynamical system
 class Cylinder(DiscreteSystem):
     """Represent a system describing a 2D cylinder wake.
 
