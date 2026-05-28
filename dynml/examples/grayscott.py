@@ -407,7 +407,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
 
         | **Returns**
         |   ``Tensor``: the initial condition with shape
-                ``(...,) + (2 * self.K + 1,)``
+                ``(...,) + (2 * (2 * self.K + 1),)``
 
         | **Raises**
         |   None
@@ -415,7 +415,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
         | **References**
         |   None
         """
-        gaussian = randn((2 * self.K + 1,),
+        gaussian = randn((2 * (2 * self.K + 1),),
                          device=next(self.parameters()).device.type)
         direction = gaussian / norm(gaussian)
         radius = rand((1,), device=next(self.parameters()).device.type)
