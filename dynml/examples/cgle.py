@@ -18,11 +18,11 @@ from dynml.dyn.cont.ode.firstorder.system import SemiLinearFirstOrderSystem
 
 
 # export public code
-__all__ = ['CGLE']
+__all__ = ['PeriodicCGLE']
 
 
 # define the dynamical system
-class CGLE(SemiLinearFirstOrderSystem):
+class PeriodicCGLE(SemiLinearFirstOrderSystem):
     """Represent the discretized complex Ginzburg-Landau dynamical system with
     periodic boundary conditions.
 
@@ -232,11 +232,11 @@ class CGLE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the state with shape
-                ``(...,) +(2 * (2 * self.K + 1),)``
+                ``(...,) + (2 * (2 * self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the nonlinear term with shape
-                ``(...,) +(2 * (2 * self.K + 1),)``
+                ``(...,) + (2 * (2 * self.K + 1),)``
 
         | **Raises**
         |   None
@@ -292,7 +292,7 @@ class CGLE(SemiLinearFirstOrderSystem):
 
         | **Args**
         |   ``x`` (``Tensor``): the state with shape
-                ``(2 * (2 * self.K + 1),)``
+                ``(...,) + (2 * (2 * self.K + 1),)``
 
         | **Returns**
         |   ``Tensor``: the physical state with shape
