@@ -300,7 +300,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
         ksq = (2 * pi / self.L)**2 * ks**2
         diag_A_u = -self.alpha * ksq - self.f
         diag_A_v = -self.beta * ksq - self.f - self.k
-        diag_A = cat((diag_A_u, diag_A_u, diag_A_v, diag_A_v))
+        diag_A = cat((diag_A_u, diag_A_v))
         self._A = Parameter(diag(diag_A), requires_grad=False)
 
     def nonlinear(self, x: Tensor) -> Tensor:
