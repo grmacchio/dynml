@@ -193,9 +193,9 @@ class GrayScott(SemiLinearFirstOrderSystem):
             \\vec{x}
             &=
             (\\text{Re} \\: U_0, \\ldots, \\text{Re} \\: U_K,
-            \\text{Im} \\: U_0, \\ldots, \\text{Im} \\: U_{K},
+            \\text{Im} \\: U_1, \\ldots, \\text{Im} \\: U_{K},
             \\text{Re} \\: V_0, \\ldots, \\text{Re} \\: V_K,
-            \\text{Im} \\: V_0, \\ldots, \\text{Im} \\: V_{K}).
+            \\text{Im} \\: V_1, \\ldots, \\text{Im} \\: V_{K}).
         \\end{align*}
 
     | **Abstract Attributes**
@@ -296,7 +296,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
         self.N = 2 * K + 1
         self._K_prime = 2 * K
         self._N_prime = 2 * self._K_prime + 1
-        ks = arange(0, K + 1)
+        ks = cat((arange(0, K + 1), arange(1, K + 1)))
         ksq = (2 * pi / self.L)**2 * ks**2
         diag_A_u = -self.alpha * ksq - self.f
         diag_A_v = -self.beta * ksq - self.f - self.k
@@ -324,10 +324,16 @@ class GrayScott(SemiLinearFirstOrderSystem):
                 flow. Vol. 148. New York: Springer, 2002, ch. 2.
         """
         # convert to collocation space
-        U = (x[..., :(self.K + 1)]
-             + 1j * x[..., (self.K + 1):2 * (self.K + 1)])
-        V = (x[..., 2 * (self.K + 1):3 * (self.K + 1)]
-             + 1j * x[..., 3 * (self.K + 1):4 * (self.K + 1)])
+        U = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        U[..., 0] = x[..., 0] + 1j * 0.0
+        U[..., 1:] = (x[..., 1:self.K + 1]
+                      + 1j * x[..., self.K + 1:2 * self.K + 1])
+        V = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        V[..., 0] = x[..., 2 * self.K + 1] + 1j * 0.0
+        V[..., 1:] = (x[..., 2 * self.K + 2:3 * self.K + 1]
+                      + 1j * x[..., 3 * self.K + 2:])
         u = self._dealiased_irfft(U)
         v = self._dealiased_irfft(V)
         # compute in collocation space
@@ -356,10 +362,16 @@ class GrayScott(SemiLinearFirstOrderSystem):
         |   None
         """
         # convert to collocation space
-        U = (x[..., :(self.K + 1)]
-             + 1j * x[..., (self.K + 1):2 * (self.K + 1)])
-        V = (x[..., 2 * (self.K + 1):3 * (self.K + 1)]
-             + 1j * x[..., 3 * (self.K + 1):4 * (self.K + 1)])
+        U = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        U[..., 0] = x[..., 0] + 1j * 0.0
+        U[..., 1:] = (x[..., 1:self.K + 1]
+                      + 1j * x[..., self.K + 1:2 * self.K + 1])
+        V = zeros(x.shape[:-1] + (1 + self.K,),
+                  device=next(self.parameters()).device.type) + 1j * 0.0
+        V[..., 0] = x[..., 2 * self.K + 1] + 1j * 0.0
+        V[..., 1:] = (x[..., 2 * self.K + 2:3 * self.K + 1]
+                      + 1j * x[..., 3 * self.K + 2:])
         return (irfft(U, n=self.N, norm='forward'),
                 irfft(V, n=self.N, norm='forward'))
 
@@ -387,7 +399,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
         # convert to state space
         U = rfft(u, n=self.N, norm='forward')
         V = rfft(v, n=self.N, norm='forward')
-        return cat((U.real, U.imag, V.real, V.imag), dim=-1)
+        return cat((U.real, U[..., 1:].imag, V.real, V[..., 1:].imag), dim=-1)
 
     def gen_ic(self) -> Tensor:
         """Return an I.C. where :math:`\\|\\vec{x}\\|_2 \\sim U[[0, 1)]`.
