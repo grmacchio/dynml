@@ -339,8 +339,8 @@ class GrayScott(SemiLinearFirstOrderSystem):
         # compute in collocation space
         output = self._dealiased_rfft(v * v + u * v * v)
         # convert to frequency space
-        return cat((-1 * output.real, -1 * output.imag,
-                    output.real, output.imag), dim=-1)
+        return cat((-1 * output.real, -1 * output[..., 1:].imag,
+                    output.real, output[..., 1:].imag), dim=-1)
 
     def state_to_phys(self, x: Tensor) -> Tuple[Tensor, Tensor]:
         """Return the physical state given the state.
