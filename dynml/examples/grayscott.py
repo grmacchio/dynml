@@ -370,7 +370,7 @@ class GrayScott(SemiLinearFirstOrderSystem):
         V = zeros(x.shape[:-1] + (1 + self.K,),
                   device=next(self.parameters()).device.type) + 1j * 0.0
         V[..., 0] = x[..., 2 * self.K + 1] + 1j * 0.0
-        V[..., 1:] = (x[..., 2 * self.K + 2:3 * self.K + 1]
+        V[..., 1:] = (x[..., 2 * self.K + 2:3 * self.K + 2]
                       + 1j * x[..., 3 * self.K + 2:])
         return (irfft(U, n=self.N, norm='forward'),
                 irfft(V, n=self.N, norm='forward'))
